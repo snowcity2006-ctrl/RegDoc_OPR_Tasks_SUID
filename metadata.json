@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix DocReg_Tasks_1_SUID",
+  "description": "Дополнительно добавлена закладка для заполнения информации о работе в СУИД",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
