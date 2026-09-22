@@ -19,6 +19,8 @@ import {
   RotateCcw,
   GripHorizontal,
   MoveDiagonal,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { DocumentRecord } from '../../types';
 import { formatDateRussian } from '../../utils/date';
@@ -83,6 +85,14 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
     docSubject: '',
   });
   const [deleting, setDeleting] = useState(false);
+  const [copiedPathDocId, setCopiedPathDocId] = useState<number | null>(null);
+
+  const handleCopyPath = (e: React.MouseEvent, path: string, docId: number) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(path);
+    setCopiedPathDocId(docId);
+    setTimeout(() => setCopiedPathDocId(null), 1500);
+  };
 
   // Управление шириной колонок (Column Resizing) по ТЗ
   const defaultColWidths: Record<string, number> = {
@@ -96,7 +106,7 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
     subject: 280,
     sender: 170,
     recipient: 170,
-    filePath: 140,
+    filePath: 220,
     sedUrl: 80,
     actions: isRelatedSelectionMode ? 165 : 135,
   };
@@ -105,7 +115,14 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
     try {
       const storageKey = isRelatedSelectionMode ? 'sed_table_widths_related' : 'sed_table_widths';
       const saved = localStorage.getItem(storageKey);
-      return saved ? { ...defaultColWidths, ...JSON.parse(saved) } : defaultColWidths;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.filePath && parsed.filePath < 180) {
+          parsed.filePath = 220;
+        }
+        return { ...defaultColWidths, ...parsed };
+      }
+      return defaultColWidths;
     } catch {
       return defaultColWidths;
     }
@@ -988,22 +1005,39 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
                   {doc.filePath ? (
                     (() => {
                       const isFolder = doc.filePath.endsWith('/') || doc.filePath.endsWith('\\') || !/\.[a-zA-Z0-9]{1,8}$/.test(doc.filePath.trim());
-                      const cleanPath = doc.filePath.replace(/[/\\]+$/, '');
-                      const displayName = cleanPath.split(/[/\\]/).pop() || doc.filePath;
 
                       return (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenFile(doc.filePath)}
-                          className={`inline-flex items-center gap-1.5 ${isFolder ? 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300' : 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'} hover:underline max-w-full font-mono text-[11px] cursor-pointer break-all whitespace-normal text-left`}
-                        >
-                          {isFolder ? (
-                            <FolderOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                          ) : (
-                            <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                          )}
-                          <span className="break-all font-semibold">{displayName}</span>
-                        </button>
+                        <div className="flex items-start justify-between gap-1.5 min-w-0 max-w-full py-0.5 group/path">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenFile(doc.filePath)}
+                            title={`Открыть: ${doc.filePath}`}
+                            className={`inline-flex items-start gap-1.5 ${
+                              isFolder
+                                ? 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300'
+                                : 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
+                            } hover:underline min-w-0 font-mono text-[11px] cursor-pointer break-all whitespace-normal text-left leading-snug`}
+                          >
+                            {isFolder ? (
+                              <FolderOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                            ) : (
+                              <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                            )}
+                            <span className="break-all">{doc.filePath}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopyPath(e, doc.filePath, doc.id)}
+                            title={copiedPathDocId === doc.id ? 'Путь скопирован!' : 'Скопировать путь к файлу/папке'}
+                            className="opacity-0 group-hover/path:opacity-100 p-0.5 hover:bg-slate-200 dark:hover:bg-[#2D3139] rounded text-slate-400 hover:text-slate-700 dark:hover:text-gray-200 transition-opacity shrink-0 cursor-pointer mt-0.5"
+                          >
+                            {copiedPathDocId === doc.id ? (
+                              <Check className="w-3 h-3 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
                       );
                     })()
                   ) : (
