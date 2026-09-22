@@ -78,6 +78,14 @@ html:not(.dark) .bg-\[\#171A21\] {
   background-color: #ffffff !important;
 }
 
+html:not(.dark) .bg-\[\#1A1D24\] {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .bg-\[\#1C1F28\] {
+  background-color: #f8fafc !important;
+}
+
 html:not(.dark) .bg-\[\#1F222B\],
 html:not(.dark) .bg-\[\#1F222B\]\/60,
 html:not(.dark) .bg-\[\#1F222B\]\/70 {
@@ -87,6 +95,21 @@ html:not(.dark) .bg-\[\#1F222B\]\/70 {
 html:not(.dark) .hover\:bg-\[\#1F222B\]:hover,
 html:not(.dark) .hover\:bg-\[\#1F222B\]\/60:hover,
 html:not(.dark) .hover\:bg-\[\#1F222B\]\/70:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .hover\:bg-\[\#282C37\]:hover,
+html:not(.dark) .bg-\[\#282C37\] {
+  background-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .hover\:bg-\[\#242834\]:hover,
+html:not(.dark) .bg-\[\#242834\] {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .hover\:bg-\[\#252831\]:hover,
+html:not(.dark) .bg-\[\#252831\] {
   background-color: #e2e8f0 !important;
 }
 
@@ -313,18 +336,27 @@ html:not(.dark) table tbody {
 }
 
 html:not(.dark) table tbody tr {
-  background-color: #ffffff;
+  background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
 
-html:not(.dark) table tbody tr:hover {
+html:not(.dark) table tbody tr:nth-child(even) {
   background-color: #f8fafc !important;
+}
+
+html:not(.dark) table tbody tr:hover {
+  background-color: #f1f5f9 !important;
 }
 
 html:not(.dark) table td {
   color: #0f172a !important;
   border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) table td.text-white,
+html:not(.dark) table td .text-white {
+  color: #0f172a !important;
 }
 
 html:not(.dark) table td span,
@@ -361,8 +393,12 @@ html:not(.dark) table thead th.sticky {
   background-color: #f1f5f9 !important;
 }
 
-html:not(.dark) table tbody tr:hover td.sticky {
+html:not(.dark) table tbody tr:nth-child(even) td.sticky {
   background-color: #f8fafc !important;
+}
+
+html:not(.dark) table tbody tr:hover td.sticky {
+  background-color: #f1f5f9 !important;
 }
 
 /* Формы, поля ввода, выпадающие списки и метки в светлой теме */
@@ -451,9 +487,30 @@ html:not(.dark) [class*="text-rose-400"] {
 }
 
 html:not(.dark) .bg-rose-500\/10,
+html:not(.dark) .bg-rose-500\/20,
+html:not(.dark) [class*="bg-rose-500/20"],
 html:not(.dark) .bg-rose-600\/20 {
   background-color: #fff1f2 !important;
   border-color: #fecdd3 !important;
+}
+
+/* Синие бейджи и плашки в светлой теме */
+html:not(.dark) [class*="bg-blue-500/15"],
+html:not(.dark) [class*="bg-blue-900/30"] {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+}
+
+/* Бирюзовые бейджи и карточки (отчеты СУИД) в светлой теме */
+html:not(.dark) [class*="text-teal-300"],
+html:not(.dark) [class*="text-teal-400"] {
+  color: #0f766e !important; /* Teal 700 для безупречного контраста 5.4+:1 */
+}
+
+html:not(.dark) [class*="bg-teal-500/15"],
+html:not(.dark) [class*="bg-teal-900/30"] {
+  background-color: #f0fdfa !important;
+  border-color: #99f6e4 !important;
 }
 
 /* Фиолетовые бейджи (код проекта) в светлой теме */
@@ -468,7 +525,7 @@ html:not(.dark) [class*="bg-purple-900/30"] {
   border-color: #d8b4fe !important;
 }
 
-/* Плашки отчетов подразделений в таблице СУИД для светлой темы */
+/* Плашки отчетов подразделений в таблице СУИД для светлой теме */
 html:not(.dark) table td .bg-\[\#0F1115\] {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
@@ -480,6 +537,17 @@ html:not(.dark) table td .bg-gray-800 {
   color: #334155 !important;
 }
 
+/* Подвал таблицы СУИД в светлой теме */
+html:not(.dark) #suid-table-footer {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+html:not(.dark) #suid-table-footer span {
+  color: #475569 !important;
+}
+
 /* Плейсхолдеры в поисковых строках и полях ввода в светлой теме */
 html:not(.dark) input::placeholder,
 html:not(.dark) textarea::placeholder {
@@ -488,6 +556,19 @@ html:not(.dark) textarea::placeholder {
 }
 
 /* Catch-all safety for text-white in light mode when not on dark/colored buttons or badges */
+html:not(.dark) [class*="bg-blue-"] .text-white,
+html:not(.dark) [class*="bg-blue-"] h2,
+html:not(.dark) [class*="bg-blue-"] h3,
+html:not(.dark) [class*="bg-rose-"] .text-white,
+html:not(.dark) [class*="bg-emerald-"] .text-white,
+html:not(.dark) [class*="bg-indigo-"] .text-white,
+html:not(.dark) button[class*="bg-blue-"] .text-white,
+html:not(.dark) button[class*="bg-rose-"] .text-white,
+html:not(.dark) button[class*="bg-emerald-"] .text-white,
+html:not(.dark) button[class*="bg-indigo-"] .text-white {
+  color: #ffffff !important;
+}
+
 html:not(.dark) .text-white:not(
   [class*="bg-blue-"],
   [class*="bg-rose-"],
@@ -497,15 +578,8 @@ html:not(.dark) .text-white:not(
   [class*="bg-indigo-"],
   [class*="bg-purple-"],
   [class*="bg-amber-"]
-) {
+):not([class*="bg-blue-"] *):not([class*="bg-rose-"] *):not([class*="bg-emerald-"] *):not([class*="bg-indigo-"] *) {
   color: #0f172a !important;
-}
-
-html:not(.dark) button[class*="bg-blue-"] .text-white,
-html:not(.dark) button[class*="bg-rose-"] .text-white,
-html:not(.dark) button[class*="bg-emerald-"] .text-white,
-html:not(.dark) button[class*="bg-indigo-"] .text-white {
-  color: #ffffff !important;
 }
 
 html:not(.dark) option {
@@ -589,5 +663,23 @@ html.dark input[type="date"]::-webkit-calendar-picker-indicator:hover,
 :root.dark input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
   background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ==========================================================================
+   Предотвращение наплыва/наползания текста в соседние ячейки таблиц
+   ========================================================================== */
+table.table-fixed {
+  table-layout: fixed !important;
+}
+
+table.table-fixed th,
+table.table-fixed td {
+  overflow: hidden !important;
+  box-sizing: border-box;
+}
+
+table.table-fixed td > *,
+table.table-fixed th > * {
+  max-width: 100%;
 }
 

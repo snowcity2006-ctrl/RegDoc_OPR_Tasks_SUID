@@ -373,9 +373,24 @@ class WebMockDatabase implements ElectronAPI {
       localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(INITIAL_DATA.projects));
     }
 
-    // Инициализация реестра СУИД
-    if (!localStorage.getItem(STORAGE_KEYS.SUID_TASKS)) {
+    // Инициализация реестра СУИД и удаление текста в скобках [ ... ] из наименований
+    const existingSuid = localStorage.getItem(STORAGE_KEYS.SUID_TASKS);
+    if (!existingSuid) {
       localStorage.setItem(STORAGE_KEYS.SUID_TASKS, JSON.stringify(INITIAL_SUID_TASKS));
+    } else {
+      try {
+        const parsed = JSON.parse(existingSuid);
+        let changed = false;
+        parsed.forEach((t: any) => {
+          if (t.taskName && /\[.*?\]/.test(t.taskName)) {
+            t.taskName = t.taskName.replace(/\s*\[.*?\]\s*/g, ' ').trim();
+            changed = true;
+          }
+        });
+        if (changed) {
+          localStorage.setItem(STORAGE_KEYS.SUID_TASKS, JSON.stringify(parsed));
+        }
+      } catch {}
     }
 
     // Дополнение справочников значениями из таблицы СУИД, если их еще нет в локальном хранилище

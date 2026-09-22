@@ -54,7 +54,11 @@ export const SuidDetailModal: React.FC<SuidDetailModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+                <h2
+                  id="suid-detail-modal-title"
+                  className="text-sm font-bold uppercase tracking-wider !text-white text-white"
+                  style={{ color: '#ffffff' }}
+                >
                   Карточка задачи СУИД №{task.idx ?? task.id}
                 </h2>
                 {task.docTypeName && (

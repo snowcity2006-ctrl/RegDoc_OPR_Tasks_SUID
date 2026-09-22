@@ -295,8 +295,8 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
               className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
             >
               <option value="">Не фильтровать по отчету</option>
-              <option value="report_received">Отчет получен (все подразделения)</option>
-              <option value="report_waiting">Ожидается отчет (не все получены)</option>
+              <option value="report_received">Отчет получен — все подразделения</option>
+              <option value="report_waiting">Ожидается отчет — не все получены</option>
               <option value="report_not_required">Отчет не требуется</option>
             </select>
           </div>

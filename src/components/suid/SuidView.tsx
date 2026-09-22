@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import * as XLSX from 'xlsx';
 import {
   Layers,
   Plus,
@@ -178,65 +179,117 @@ export const SuidView: React.FC<SuidViewProps> = ({
     setDetailTask(task);
   };
 
-  // Экспорт данных в CSV с поддержкой русской кодировки (BOM UTF-8)
-  const handleExportCsv = async () => {
-    const headers = [
-      '№',
-      'Дата поступления',
-      'Срок план',
-      'Срок факт',
-      'Просрочка (дн.)',
-      'Задача',
-      'Описание задачи',
-      'ID в СУИД',
-      'Автор',
-      'Тип документа',
-      'Код проекта',
-      'Название проекта',
-      'Структурные подразделения',
-      'Ежемесячный отчет',
-      'Куратор от ОПР',
-      'Примечания',
-    ];
-
-    const rows = filteredTasks.map((t) => {
-      const depts = (t.participatingDepartments || []).map((d) => d.departmentShortName).join('; ');
-      const reports = t.isReportNotRequired
-        ? 'Отчет не требуется'
-        : (t.branchReports || [])
-            .map((br) => `${br.departmentShortName}: ${br.isReceived ? 'Получен' : 'Отсутствует'}${br.documentDetails ? ` (${br.documentDetails})` : ''}`)
-            .join('; ');
-
-      return [
-        t.idx ?? t.id,
-        t.receiptDate || '',
-        t.plannedEndDate || '',
-        t.actualEndDate || '',
-        t.delayDays ?? 0,
-        `"${(t.taskName || '').replace(/"/g, '""')}"`,
-        `"${(t.taskDescription || '').replace(/"/g, '""')}"`,
-        t.suidId || '',
-        `"${(t.authorName || '').replace(/"/g, '""')}"`,
-        t.docTypeName || '',
-        t.projectCode || '',
-        `"${(t.projectName || '').replace(/"/g, '""')}"`,
-        `"${depts.replace(/"/g, '""')}"`,
-        `"${reports.replace(/"/g, '""')}"`,
-        `"${(t.curatorNames || '').replace(/"/g, '""')}"`,
-        `"${(t.notes || '').replace(/"/g, '""')}"`,
+  // Экспорт данных в Excel (.xlsx)
+  const handleExportExcel = async () => {
+    try {
+      const headers = [
+        '№',
+        'Дата поступления',
+        'Срок план',
+        'Срок факт',
+        'Просрочка, дн.',
+        'Задача',
+        'Описание задачи',
+        'ID в СУИД',
+        'Автор',
+        'Тип документа',
+        'Код проекта',
+        'Название проекта',
+        'Структурные подразделения',
+        'Ежемесячный отчет',
+        'Куратор от ОПР',
+        'Примечания',
       ];
-    });
 
-    const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `SUID_Tasks_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const rows = filteredTasks.map((t) => {
+        const depts = (t.participatingDepartments || []).map((d) => d.departmentShortName).join('; ');
+        const reports = t.isReportNotRequired
+          ? 'Отчет не требуется'
+          : (t.branchReports || [])
+              .map((br) => `${br.departmentShortName}: ${br.isReceived ? 'Получен' : 'Отсутствует'}${br.documentDetails ? ` — ${br.documentDetails}` : ''}`)
+              .join('; ');
+
+        return [
+          t.idx ?? t.id,
+          t.receiptDate || '',
+          t.plannedEndDate || '',
+          t.actualEndDate || '',
+          t.delayDays ?? 0,
+          t.taskName || '',
+          t.taskDescription || '',
+          t.suidId || '',
+          t.authorName || '',
+          t.docTypeName || '',
+          t.projectCode || '',
+          t.projectName || '',
+          depts,
+          reports,
+          t.curatorNames || '',
+          t.notes || '',
+        ];
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+      ws['!cols'] = [
+        { wch: 6 },  // №
+        { wch: 15 }, // Дата поступления
+        { wch: 15 }, // Срок план
+        { wch: 15 }, // Срок факт
+        { wch: 16 }, // Просрочка (дн.)
+        { wch: 35 }, // Задача
+        { wch: 30 }, // Описание задачи
+        { wch: 14 }, // ID в СУИД
+        { wch: 22 }, // Автор
+        { wch: 18 }, // Тип документа
+        { wch: 14 }, // Код проекта
+        { wch: 25 }, // Название проекта
+        { wch: 25 }, // СП
+        { wch: 30 }, // Ежемесячный отчет
+        { wch: 22 }, // Куратор
+        { wch: 25 }, // Примечания
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Задачи СУИД');
+
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
+      const defaultFileName = `${dateStr}_Задачи_СУИД.xlsx`;
+
+      let targetFilePath: string | null = null;
+      if (electronBridge.showSaveExcelDialog) {
+        targetFilePath = await electronBridge.showSaveExcelDialog(defaultFileName);
+      } else {
+        targetFilePath = defaultFileName;
+      }
+
+      if (!targetFilePath) return;
+
+      const base64Data = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+      if (electronBridge.saveFiles) {
+        await electronBridge.saveFiles([
+          {
+            filePath: targetFilePath,
+            base64Data,
+          },
+        ]);
+      } else {
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = targetFilePath.split(/[/\\]/).pop() || defaultFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('Ошибка экспорта в Excel:', err);
+    }
   };
 
   // Печать перечня
@@ -306,18 +359,18 @@ export const SuidView: React.FC<SuidViewProps> = ({
             className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-md"
           >
             <Plus className="w-4 h-4" />
-            <span>Добавить запись в СУИД</span>
+            <span>Добавить запись</span>
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={handleExportCsv}
+            onClick={handleExportExcel}
             className="px-3 py-2 rounded-xl bg-[#0F1115] border border-[#2D3139] hover:bg-[#1F222B] text-gray-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <span>Экспорт в CSV</span>
+            <span>Экспорт в Excel</span>
           </button>
 
           <button

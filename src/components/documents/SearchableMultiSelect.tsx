@@ -155,7 +155,7 @@ export function SearchableMultiSelect<T extends number | string = number>({
             onClick={handleClearAll}
             className="text-[11px] text-gray-400 hover:text-rose-400 transition-colors cursor-pointer shrink-0"
           >
-            Очистить ({selectedIds.length})
+            Очистить
           </button>
         )}
       </div>
@@ -284,7 +284,7 @@ export function SearchableMultiSelect<T extends number | string = number>({
                   <span>По запросу «<strong className="text-gray-200">{query.trim()}</strong>»: {filteredOptions.length}</span>
                 </>
               ) : (
-                <span>Всего записей: {filteredOptions.length} (выбрано: {selectedIds.length})</span>
+                <span>Всего записей: {filteredOptions.length}, выбрано: {selectedIds.length}</span>
               )}
             </span>
             <div className="flex items-center gap-2 shrink-0 ml-2">

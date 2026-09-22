@@ -94,7 +94,8 @@ export const SuidModal: React.FC<SuidModalProps> = ({
         setReceiptDate(task.receiptDate || '');
         setPlannedEndDate(task.plannedEndDate || '');
         setActualEndDate(task.actualEndDate || '');
-        setTaskName(task.taskName || '');
+        const cleanName = task.taskName ? task.taskName.replace(/\s*\[.*?\]\s*/g, ' ').replace(/\s*\(.*?\)\s*/g, ' ').trim() : '';
+        setTaskName(cleanName);
         setTaskDescription(task.taskDescription || '');
         setSuidId(task.suidId || '');
         const currentAuthor = task.authorName || '';
@@ -418,11 +419,15 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+              <h2
+                id="suid-modal-title"
+                className="text-sm font-bold uppercase tracking-wider !text-white text-white"
+                style={{ color: '#ffffff' }}
+              >
                 {task ? `Редактирование задачи СУИД №${task.idx ?? task.id}` : 'Новая запись в СУИД'}
               </h2>
               <p className="text-[11px] text-blue-100/80">
-                Система Управления Инженерными Данными (СУИД)
+                Система Управления Инженерными Данными
               </p>
             </div>
           </div>
@@ -523,7 +528,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
             <div className="min-w-0 w-full">
               <label
                 className="text-[11px] text-gray-300 font-medium block mb-1 truncate"
-                title="Просрочка (расчет)"
+                title="Просрочка"
               >
                 Просрочка
               </label>
@@ -551,7 +556,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                 rows={2}
                 value={taskName}
                 onChange={(e) => setTaskName(e.target.value)}
-                placeholder="Например: 41.2.5 Рассмотрение комплекта РД [41.2.2]"
+                placeholder="Например: 41.2.5 Рассмотрение комплекта РД"
                 className="w-full px-3 py-2 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white placeholder-gray-500 focus:outline-hidden focus:border-blue-500"
               />
             </div>
@@ -577,7 +582,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               <div>
                 <label className="text-[11px] text-gray-300 font-medium flex items-center gap-1 mb-1.5">
                   <User className="w-3.5 h-3.5 text-blue-400" />
-                  Автор задачи (выбор из справочника «Сотрудники»)
+                  Автор задачи
                 </label>
                 <SearchableCombobox
                   id="suid-author-combobox"
@@ -597,7 +602,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               <div>
                 <SearchableMultiSelect
                   id="suid-curators-select"
-                  label="Куратор от ОПР (выбор из справочника «Сотрудники», мультивыбор — п. 1.2.4)"
+                  label="Куратор от ОПР"
                   icon={<Users className="w-3.5 h-3.5 text-emerald-400" />}
                   options={curatorOptions}
                   selectedIds={selectedCuratorIds}
@@ -614,7 +619,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
           <div className="bg-[#1F222B]/60 p-3.5 rounded-xl border border-[#2D3139]">
             <label className="text-[11px] text-purple-400 font-medium flex items-center gap-1 mb-1.5">
               <Layers className="w-3.5 h-3.5" />
-              Проект (выбор из справочника «Проекты» — п. 1.2.2)
+              Проект
             </label>
             <select
               value={projectId ?? ''}
@@ -624,7 +629,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               <option value="">-- Выберите проект из реестра --</option>
               {projects.map((pr) => (
                 <option key={pr.id} value={pr.id}>
-                  {pr.code ? `[${pr.code}] ` : ''}{pr.name}
+                  {pr.code ? `${pr.code} • ` : ''}{pr.name}
                 </option>
               ))}
             </select>
@@ -636,7 +641,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               <div className="flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-[11px] text-amber-400 font-medium">
-                  Структурные подразделения (выбор из справочника «Подразделения», мультивыбор — п. 1.2.3)
+                  Структурные подразделения
                 </span>
               </div>
 
@@ -654,7 +659,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
             </div>
 
             <p className="text-[10px] text-gray-400 mb-2.5">
-              * При выборе подразделения отметьте чекбокс «Требуется ежемесячный отчет», чтобы добавить подразделение в перечень ежемесячного отчета (п. 1.2.5).
+              * При выборе подразделения отметьте чекбокс «Требуется ежемесячный отчет», чтобы добавить подразделение в перечень ежемесячного отчета.
             </p>
 
             <SearchableMultiSelect<string>
@@ -723,14 +728,14 @@ export const SuidModal: React.FC<SuidModalProps> = ({
           <div className="bg-[#1F222B]/60 p-3.5 rounded-xl border border-[#2D3139]">
             <label className="text-[11px] text-teal-400 font-medium flex items-center gap-1.5 mb-2">
               <FileCheck2 className="w-3.5 h-3.5" />
-              Наличие ежемесячного отчета (п. 1.2.5)
+              Наличие ежемесячного отчета
             </label>
 
             {isReportNotRequired ? (
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-2">
                 <Ban className="w-4 h-4 shrink-0 text-amber-400" />
                 <span className="font-medium">
-                  Отчет по данной задаче не требуется (установлен флаг «Отчет не требуется»)
+                  Отчет по данной задаче не требуется
                 </span>
               </div>
             ) : selectedDeptShortNames.length === 0 ? (
@@ -744,7 +749,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
             ) : (
               <div className="flex flex-col gap-2">
                 <div className="text-[11px] text-gray-400 mb-1">
-                  Список структурных подразделений, от которых требуется получение ежемесячного отчета ({requiredReportDeptShortNames.length}):
+                  Список структурных подразделений, от которых требуется получение ежемесячного отчета:
                 </div>
 
                 <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
@@ -786,7 +791,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                             onChange={(e) => handleReportDetailsChange(dShortName, e.target.value)}
                             placeholder={
                               report.isReceived
-                                ? "Реквизиты документа (например: СЗ 18/203-870 от 02.02.2026)"
+                                ? "Реквизиты документа, например: СЗ 18/203-870 от 02.02.2026"
                                 : "Ввод доступен только при установке флага «Отчет получен»"
                             }
                             className={`w-full px-2.5 py-1.5 border rounded-lg text-xs font-mono transition-colors focus:outline-hidden ${

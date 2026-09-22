@@ -58,7 +58,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
   const [sortAsc, setSortAsc] = useState(true);
 
   // Пагинация
-  const [pageSize, setPageSize] = useState<number>(25);
+  const [pageSize, setPageSize] = useState<number | 'all'>(25);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Диалог подтверждения удаления
@@ -82,13 +82,13 @@ export const SuidTable: React.FC<SuidTableProps> = ({
     delayDays: 95,
     taskName: 240,
     taskDescription: 200,
-    suidId: 105,
-    authorName: 160,
-    docTypeName: 90,
-    projectCode: 95,
+    suidId: 110,
+    authorName: 150,
+    docTypeName: 135,
+    projectCode: 110,
     projectName: 220,
     participatingDepts: 160,
-    branchReports: 180,
+    branchReports: 200,
     curatorNames: 150,
     notes: 160,
     actions: 110,
@@ -200,6 +200,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
     startY: number;
     startWidth: number;
     startHeight: number;
+    startColWidths: Record<string, number>;
   } | null>(null);
 
   const startResizingTable = (edge: 'bottom' | 'right' | 'left' | 'corner-se' | 'corner-sw', e: React.MouseEvent) => {
@@ -214,12 +215,15 @@ export const SuidTable: React.FC<SuidTableProps> = ({
       startY: e.clientY,
       startWidth: rect.width,
       startHeight: rect.height,
+      startColWidths: { ...colWidths },
     };
     setIsResizingTable(edge);
 
+    let latestScaledWidths: Record<string, number> | null = null;
+
     const handleTableMouseMove = (moveEvent: MouseEvent) => {
       if (!resizingTable.current) return;
-      const { edge: currentEdge, startX, startY, startWidth, startHeight } = resizingTable.current;
+      const { edge: currentEdge, startX, startY, startWidth, startHeight, startColWidths } = resizingTable.current;
 
       if (currentEdge === 'bottom' || currentEdge === 'corner-se' || currentEdge === 'corner-sw') {
         const deltaY = moveEvent.clientY - startY;
@@ -231,10 +235,34 @@ export const SuidTable: React.FC<SuidTableProps> = ({
         const deltaX = moveEvent.clientX - startX;
         const newWidth = Math.max(480, startWidth + deltaX);
         setTableWidth(newWidth);
+
+        // Пропорциональное масштабирование ширины колонок
+        const totalStartColW = Object.values(startColWidths).reduce((a, b) => a + b, 0) || startWidth;
+        const ratio = newWidth / totalStartColW;
+        const scaledColWidths: Record<string, number> = {};
+
+        for (const [key, initialW] of Object.entries(startColWidths)) {
+          scaledColWidths[key] = Math.max(28, Math.round(initialW * ratio));
+        }
+
+        latestScaledWidths = scaledColWidths;
+        setColWidths(scaledColWidths);
       } else if (currentEdge === 'left' || currentEdge === 'corner-sw') {
         const deltaX = startX - moveEvent.clientX;
         const newWidth = Math.max(480, startWidth + deltaX);
         setTableWidth(newWidth);
+
+        // Пропорциональное масштабирование ширины колонок
+        const totalStartColW = Object.values(startColWidths).reduce((a, b) => a + b, 0) || startWidth;
+        const ratio = newWidth / totalStartColW;
+        const scaledColWidths: Record<string, number> = {};
+
+        for (const [key, initialW] of Object.entries(startColWidths)) {
+          scaledColWidths[key] = Math.max(28, Math.round(initialW * ratio));
+        }
+
+        latestScaledWidths = scaledColWidths;
+        setColWidths(scaledColWidths);
       }
     };
 
@@ -248,6 +276,9 @@ export const SuidTable: React.FC<SuidTableProps> = ({
       try {
         if (tableHeight) localStorage.setItem('suid_table_height', String(tableHeight));
         if (tableWidth) localStorage.setItem('suid_table_width', String(tableWidth));
+        if (latestScaledWidths) {
+          localStorage.setItem('suid_table_widths', JSON.stringify(latestScaledWidths));
+        }
       } catch {}
     };
 
@@ -288,8 +319,13 @@ export const SuidTable: React.FC<SuidTableProps> = ({
   }, [tasks, sortField, sortAsc]);
 
   // Пагинация
-  const totalPages = useMemo(() => Math.ceil(sortedTasks.length / pageSize) || 1, [sortedTasks.length, pageSize]);
+  const totalPages = useMemo(() => {
+    if (pageSize === 'all') return 1;
+    return Math.ceil(sortedTasks.length / pageSize) || 1;
+  }, [sortedTasks.length, pageSize]);
+
   const paginatedTasks = useMemo(() => {
+    if (pageSize === 'all') return sortedTasks;
     return sortedTasks.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   }, [sortedTasks, currentPage, pageSize]);
 
@@ -377,7 +413,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
                 id="suid-table-title"
                 className="text-xs font-bold text-white tracking-wide uppercase truncate"
               >
-                Работа в СУИД (Система Управления Инженерными Данными)
+                Работа в СУИД
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-blue-700/80 text-white border border-blue-400/40 shrink-0">
                 {tasks.length}
@@ -410,7 +446,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
             <button
               type="button"
               onClick={() => setIsMaximized((prev) => !prev)}
-              title={isMaximized ? 'Восстановить размер окна (Esc)' : 'Развернуть на весь экран'}
+              title={isMaximized ? 'Восстановить размер окна' : 'Развернуть на весь экран'}
               className="p-1 rounded-md bg-blue-700/60 hover:bg-blue-700 text-white border border-blue-400/30 transition-colors cursor-pointer"
             >
               {isMaximized ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -451,228 +487,253 @@ export const SuidTable: React.FC<SuidTableProps> = ({
               <tr className="divide-x divide-[#2D3139]">
                 {/* № */}
                 <th
+                  style={{ width: `${colWidths.idx}px`, minWidth: `${colWidths.idx}px`, maxWidth: `${colWidths.idx}px` }}
                   onClick={() => handleSort('idx')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none text-center"
+                  className="relative px-2 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none text-center overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-center gap-1">
-                    <span>№</span>
+                  <div className="flex items-center justify-center gap-1 min-w-0">
+                    <span className="truncate block" title="№">№</span>
                     {renderSortIcon('idx')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('idx', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Дата поступления */}
                 <th
+                  style={{ width: `${colWidths.receiptDate}px`, minWidth: `${colWidths.receiptDate}px`, maxWidth: `${colWidths.receiptDate}px` }}
                   onClick={() => handleSort('receiptDate')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Поступление</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Дата поступления">Поступление</span>
                     {renderSortIcon('receiptDate')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('receiptDate', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Срок план */}
                 <th
+                  style={{ width: `${colWidths.plannedEndDate}px`, minWidth: `${colWidths.plannedEndDate}px`, maxWidth: `${colWidths.plannedEndDate}px` }}
                   onClick={() => handleSort('plannedEndDate')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Срок план</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Срок план">Срок план</span>
                     {renderSortIcon('plannedEndDate')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('plannedEndDate', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Срок факт */}
                 <th
+                  style={{ width: `${colWidths.actualEndDate}px`, minWidth: `${colWidths.actualEndDate}px`, maxWidth: `${colWidths.actualEndDate}px` }}
                   onClick={() => handleSort('actualEndDate')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Срок факт</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Срок факт">Срок факт</span>
                     {renderSortIcon('actualEndDate')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('actualEndDate', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Просрочка */}
                 <th
+                  style={{ width: `${colWidths.delayDays}px`, minWidth: `${colWidths.delayDays}px`, maxWidth: `${colWidths.delayDays}px` }}
                   onClick={() => handleSort('delayDays')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none text-center"
+                  className="relative px-2 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none text-center overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-center gap-1">
-                    <span className="truncate">Просрочка</span>
+                  <div className="flex items-center justify-center gap-1 min-w-0">
+                    <span className="truncate block" title="Просрочка">Просрочка</span>
                     {renderSortIcon('delayDays')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('delayDays', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Задача */}
                 <th
+                  style={{ width: `${colWidths.taskName}px`, minWidth: `${colWidths.taskName}px`, maxWidth: `${colWidths.taskName}px` }}
                   onClick={() => handleSort('taskName')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Задача</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Задача">Задача</span>
                     {renderSortIcon('taskName')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('taskName', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Описание задачи */}
                 <th
+                  style={{ width: `${colWidths.taskDescription}px`, minWidth: `${colWidths.taskDescription}px`, maxWidth: `${colWidths.taskDescription}px` }}
                   onClick={() => handleSort('taskDescription')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Описание</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Описание задачи">Описание</span>
                     {renderSortIcon('taskDescription')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('taskDescription', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* ID в СУИД */}
                 <th
+                  style={{ width: `${colWidths.suidId}px`, minWidth: `${colWidths.suidId}px`, maxWidth: `${colWidths.suidId}px` }}
                   onClick={() => handleSort('suidId')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">ID в СУИД</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="ID в СУИД">ID в СУИД</span>
                     {renderSortIcon('suidId')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('suidId', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Автор */}
                 <th
+                  style={{ width: `${colWidths.authorName}px`, minWidth: `${colWidths.authorName}px`, maxWidth: `${colWidths.authorName}px` }}
                   onClick={() => handleSort('authorName')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Автор</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Автор задачи">Автор</span>
                     {renderSortIcon('authorName')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('authorName', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Тип документа */}
                 <th
+                  style={{ width: `${colWidths.docTypeName}px`, minWidth: `${colWidths.docTypeName}px`, maxWidth: `${colWidths.docTypeName}px` }}
                   onClick={() => handleSort('docTypeName')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Тип док.</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Тип документа">Тип док.</span>
                     {renderSortIcon('docTypeName')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('docTypeName', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Код проекта */}
                 <th
+                  style={{ width: `${colWidths.projectCode}px`, minWidth: `${colWidths.projectCode}px`, maxWidth: `${colWidths.projectCode}px` }}
                   onClick={() => handleSort('projectCode')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Код проекта</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Код проекта">Код проекта</span>
                     {renderSortIcon('projectCode')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('projectCode', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Название проекта */}
                 <th
+                  style={{ width: `${colWidths.projectName}px`, minWidth: `${colWidths.projectName}px`, maxWidth: `${colWidths.projectName}px` }}
                   onClick={() => handleSort('projectName')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Название проекта</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Название проекта">Название проекта</span>
                     {renderSortIcon('projectName')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('projectName', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Структурные подразделения */}
-                <th className="relative px-2.5 py-2.5 font-semibold select-none">
-                  <span className="truncate">Подразделения</span>
+                <th
+                  style={{ width: `${colWidths.participatingDepts}px`, minWidth: `${colWidths.participatingDepts}px`, maxWidth: `${colWidths.participatingDepts}px` }}
+                  className="relative px-2.5 py-2.5 font-semibold select-none overflow-hidden border-r border-[#2D3139]"
+                >
+                  <div className="truncate block" title="Участвующие структурные подразделения">Подразделения</div>
                   <div
                     onMouseDown={(e) => startResizing('participatingDepts', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Наличие ежемесячного отчета */}
-                <th className="relative px-2.5 py-2.5 font-semibold select-none">
-                  <span className="truncate">Ежемесячный отчет</span>
+                <th
+                  style={{ width: `${colWidths.branchReports}px`, minWidth: `${colWidths.branchReports}px`, maxWidth: `${colWidths.branchReports}px` }}
+                  className="relative px-2.5 py-2.5 font-semibold select-none overflow-hidden border-r border-[#2D3139]"
+                >
+                  <div className="truncate block" title="Наличие ежемесячного отчета">Ежемесячный отчет</div>
                   <div
                     onMouseDown={(e) => startResizing('branchReports', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Куратор от ОПР */}
                 <th
+                  style={{ width: `${colWidths.curatorNames}px`, minWidth: `${colWidths.curatorNames}px`, maxWidth: `${colWidths.curatorNames}px` }}
                   onClick={() => handleSort('curatorNames')}
-                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none"
+                  className="relative px-2.5 py-2.5 font-semibold cursor-pointer hover:bg-[#282C37] transition-colors group select-none overflow-hidden border-r border-[#2D3139]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">Куратор от ОПР</span>
+                  <div className="flex items-center justify-between min-w-0 pr-1">
+                    <span className="truncate block" title="Куратор от ОПР">Куратор от ОПР</span>
                     {renderSortIcon('curatorNames')}
                   </div>
                   <div
                     onMouseDown={(e) => startResizing('curatorNames', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Примечания */}
-                <th className="relative px-2.5 py-2.5 font-semibold select-none">
-                  <span className="truncate">Примечания</span>
+                <th
+                  style={{ width: `${colWidths.notes}px`, minWidth: `${colWidths.notes}px`, maxWidth: `${colWidths.notes}px` }}
+                  className="relative px-2.5 py-2.5 font-semibold select-none overflow-hidden border-r border-[#2D3139]"
+                >
+                  <div className="truncate block" title="Примечания">Примечания</div>
                   <div
                     onMouseDown={(e) => startResizing('notes', e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-500 transition-colors"
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors z-10"
                   />
                 </th>
 
                 {/* Действия */}
-                <th className="relative px-2.5 py-2.5 font-semibold text-center select-none sticky right-0 bg-[#1F222B] z-30 shadow-l">
+                <th
+                  style={{ width: `${colWidths.actions}px`, minWidth: `${colWidths.actions}px`, maxWidth: `${colWidths.actions}px` }}
+                  className="relative px-2.5 py-2.5 font-semibold text-center select-none sticky right-0 bg-[#1F222B] z-30 shadow-l overflow-hidden border-l border-[#2D3139]"
+                >
                   <span>Действия</span>
                 </th>
               </tr>
@@ -699,108 +760,161 @@ export const SuidTable: React.FC<SuidTableProps> = ({
                       className={`${rowBg} hover:bg-[#242834] transition-colors divide-x divide-[#2D3139]/50 group`}
                     >
                       {/* № */}
-                      <td className="px-2.5 py-2 text-center font-mono text-gray-400">
-                        {t.idx ?? t.id}
+                      <td
+                        style={{ width: `${colWidths.idx}px`, minWidth: `${colWidths.idx}px`, maxWidth: `${colWidths.idx}px` }}
+                        className="px-2 py-2 text-center font-mono text-gray-400 overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <span className="truncate block">{t.idx ?? t.id}</span>
                       </td>
 
                       {/* Дата поступления */}
-                      <td className="px-2.5 py-2 whitespace-nowrap text-gray-300 font-mono text-[11px]">
-                        {formatDateRussian(t.receiptDate)}
+                      <td
+                        style={{ width: `${colWidths.receiptDate}px`, minWidth: `${colWidths.receiptDate}px`, maxWidth: `${colWidths.receiptDate}px` }}
+                        className="px-2.5 py-2 text-gray-300 font-mono text-[11px] overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <span className="truncate block" title={formatDateRussian(t.receiptDate)}>
+                          {formatDateRussian(t.receiptDate)}
+                        </span>
                       </td>
 
                       {/* Срок план */}
-                      <td className="px-2.5 py-2 whitespace-nowrap font-mono text-[11px] text-blue-300">
-                        {formatDateRussian(t.plannedEndDate)}
+                      <td
+                        style={{ width: `${colWidths.plannedEndDate}px`, minWidth: `${colWidths.plannedEndDate}px`, maxWidth: `${colWidths.plannedEndDate}px` }}
+                        className="px-2.5 py-2 font-mono text-[11px] text-blue-300 overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <span className="truncate block" title={formatDateRussian(t.plannedEndDate)}>
+                          {formatDateRussian(t.plannedEndDate)}
+                        </span>
                       </td>
 
                       {/* Срок факт */}
-                      <td className="px-2.5 py-2 whitespace-nowrap font-mono text-[11px] text-emerald-300">
-                        {formatDateRussian(t.actualEndDate) || <span className="text-gray-500">—</span>}
+                      <td
+                        style={{ width: `${colWidths.actualEndDate}px`, minWidth: `${colWidths.actualEndDate}px`, maxWidth: `${colWidths.actualEndDate}px` }}
+                        className="px-2.5 py-2 font-mono text-[11px] text-emerald-300 overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <span className="truncate block" title={formatDateRussian(t.actualEndDate) || '—'}>
+                          {formatDateRussian(t.actualEndDate) || <span className="text-gray-500">—</span>}
+                        </span>
                       </td>
 
                       {/* Просрочка */}
-                      <td className="px-2 py-2 text-center whitespace-nowrap">
-                        {isDelay ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                            <AlertTriangle className="w-2.5 h-2.5 text-rose-400 shrink-0" />
-                            +{t.delayDays} дн.
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            0 дн.
-                          </span>
-                        )}
+                      <td
+                        style={{ width: `${colWidths.delayDays}px`, minWidth: `${colWidths.delayDays}px`, maxWidth: `${colWidths.delayDays}px` }}
+                        className="px-2 py-2 text-center overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="flex items-center justify-center min-w-0 max-w-full overflow-hidden">
+                          {isDelay ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30 truncate max-w-full" title={`+${t.delayDays} дн.`}>
+                              <AlertTriangle className="w-2.5 h-2.5 text-rose-400 shrink-0" />
+                              <span className="truncate">+{t.delayDays} дн.</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 truncate max-w-full">
+                              0 дн.
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Задача */}
-                      <td className="px-2.5 py-2 text-white font-medium break-words">
-                        <div className="line-clamp-2" title={t.taskName}>
+                      <td
+                        style={{ width: `${colWidths.taskName}px`, minWidth: `${colWidths.taskName}px`, maxWidth: `${colWidths.taskName}px` }}
+                        className="px-2.5 py-2 text-white font-medium overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="line-clamp-2 break-words max-w-full overflow-hidden text-xs" title={t.taskName}>
                           {t.taskName}
                         </div>
                       </td>
 
                       {/* Описание задачи */}
-                      <td className="px-2.5 py-2 text-gray-300 break-words text-[11px]">
-                        <div className="line-clamp-2" title={t.taskDescription}>
+                      <td
+                        style={{ width: `${colWidths.taskDescription}px`, minWidth: `${colWidths.taskDescription}px`, maxWidth: `${colWidths.taskDescription}px` }}
+                        className="px-2.5 py-2 text-gray-300 text-[11px] overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="line-clamp-2 break-words max-w-full overflow-hidden" title={t.taskDescription}>
                           {t.taskDescription || <span className="text-gray-500">—</span>}
                         </div>
                       </td>
 
                       {/* ID в СУИД */}
-                      <td className="px-2.5 py-2 font-mono text-[11px] text-amber-300 whitespace-nowrap">
-                        {t.suidId ? (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                            {t.suidId}
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">—</span>
-                        )}
+                      <td
+                        style={{ width: `${colWidths.suidId}px`, minWidth: `${colWidths.suidId}px`, maxWidth: `${colWidths.suidId}px` }}
+                        className="px-2.5 py-2 font-mono text-[11px] text-amber-300 overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="min-w-0 max-w-full overflow-hidden">
+                          {t.suidId ? (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 truncate max-w-full inline-block" title={t.suidId}>
+                              {t.suidId}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">—</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Автор */}
-                      <td className="px-2.5 py-2 text-gray-300 text-[11px]">
-                        <div className="truncate" title={t.authorName}>
+                      <td
+                        style={{ width: `${colWidths.authorName}px`, minWidth: `${colWidths.authorName}px`, maxWidth: `${colWidths.authorName}px` }}
+                        className="px-2.5 py-2 text-gray-300 text-[11px] overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="truncate max-w-full" title={t.authorName}>
                           {t.authorName || <span className="text-gray-500">—</span>}
                         </div>
                       </td>
 
                       {/* Тип документа */}
-                      <td className="px-2.5 py-2 whitespace-nowrap">
-                        {t.docTypeName ? (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
-                            {t.docTypeName}
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">—</span>
-                        )}
+                      <td
+                        style={{ width: `${colWidths.docTypeName}px`, minWidth: `${colWidths.docTypeName}px`, maxWidth: `${colWidths.docTypeName}px` }}
+                        className="px-2.5 py-2 overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="min-w-0 max-w-full overflow-hidden">
+                          {t.docTypeName ? (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 truncate max-w-full inline-block" title={t.docTypeName}>
+                              {t.docTypeName}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">—</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Код проекта */}
-                      <td className="px-2.5 py-2 font-mono text-[11px] whitespace-nowrap text-purple-300">
-                        {t.projectCode ? (
-                          <span className="px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/25">
-                            {t.projectCode}
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">—</span>
-                        )}
+                      <td
+                        style={{ width: `${colWidths.projectCode}px`, minWidth: `${colWidths.projectCode}px`, maxWidth: `${colWidths.projectCode}px` }}
+                        className="px-2.5 py-2 font-mono text-[11px] text-purple-300 overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="min-w-0 max-w-full overflow-hidden">
+                          {t.projectCode ? (
+                            <span className="px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/25 truncate max-w-full inline-block" title={t.projectCode}>
+                              {t.projectCode}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">—</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Название проекта */}
-                      <td className="px-2.5 py-2 text-gray-300 text-[11px] break-words">
-                        <div className="line-clamp-2" title={t.projectName}>
+                      <td
+                        style={{ width: `${colWidths.projectName}px`, minWidth: `${colWidths.projectName}px`, maxWidth: `${colWidths.projectName}px` }}
+                        className="px-2.5 py-2 text-gray-300 text-[11px] overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="line-clamp-2 break-words max-w-full overflow-hidden" title={t.projectName}>
                           {t.projectName || <span className="text-gray-500">—</span>}
                         </div>
                       </td>
 
                       {/* Структурные подразделения */}
-                      <td className="px-2.5 py-2">
+                      <td
+                        style={{ width: `${colWidths.participatingDepts}px`, minWidth: `${colWidths.participatingDepts}px`, maxWidth: `${colWidths.participatingDepts}px` }}
+                        className="px-2.5 py-2 overflow-hidden border-r border-[#2D3139]/50"
+                      >
                         {t.participatingDepartments && t.participatingDepartments.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1 max-w-full overflow-hidden">
                             {t.participatingDepartments.map((dept, dIdx) => (
                               <span
                                 key={dIdx}
-                                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border truncate max-w-full inline-block ${
                                   dept.requiredReport
                                     ? 'bg-blue-900/30 text-blue-300 border-blue-500/30'
                                     : 'bg-gray-800 text-gray-400 border-gray-700'
@@ -817,18 +931,21 @@ export const SuidTable: React.FC<SuidTableProps> = ({
                       </td>
 
                       {/* Наличие ежемесячного отчета */}
-                      <td className="px-2.5 py-2">
+                      <td
+                        style={{ width: `${colWidths.branchReports}px`, minWidth: `${colWidths.branchReports}px`, maxWidth: `${colWidths.branchReports}px` }}
+                        className="px-2.5 py-2 overflow-hidden border-r border-[#2D3139]/50"
+                      >
                         {t.isReportNotRequired ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-800 text-gray-400 border border-gray-700">
-                            <Ban className="w-2.5 h-2.5" />
-                            Отчет не требуется
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-800 text-gray-400 border border-gray-700 truncate max-w-full">
+                            <Ban className="w-2.5 h-2.5 shrink-0" />
+                            <span className="truncate">Отчет не требуется</span>
                           </span>
                         ) : t.branchReports && t.branchReports.length > 0 ? (
-                          <div className="flex flex-col gap-1 max-w-[260px]">
+                          <div className="flex flex-col gap-1 w-full max-w-full min-w-0 overflow-hidden">
                             {t.branchReports.map((br, brIdx) => (
                               <div
                                 key={brIdx}
-                                className="flex items-center gap-1.5 text-[10px] font-mono leading-tight bg-[#0F1115] px-1.5 py-0.5 rounded border border-[#2D3139]"
+                                className="flex items-center gap-1.5 text-[10px] font-mono leading-tight bg-[#0F1115] px-1.5 py-0.5 rounded border border-[#2D3139] min-w-0 max-w-full overflow-hidden"
                                 title={`${br.departmentShortName}: ${br.documentDetails || (br.isReceived ? 'Отчет получен' : 'Отчет отсутствует')}`}
                               >
                                 {br.isReceived ? (
@@ -837,36 +954,45 @@ export const SuidTable: React.FC<SuidTableProps> = ({
                                   <Clock className="w-3 h-3 text-amber-400 shrink-0" />
                                 )}
                                 <span className="font-bold text-gray-300 shrink-0">{br.departmentShortName}:</span>
-                                <span className="truncate text-gray-400">
+                                <span className="truncate text-gray-400 min-w-0">
                                   {br.documentDetails || (br.isReceived ? 'Отчет получен' : 'Ожидается')}
                                 </span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-amber-400/80 text-[10px] flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Ожидается отчет
+                          <span className="text-amber-400/80 text-[10px] flex items-center gap-1 truncate max-w-full">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            <span className="truncate">Ожидается отчет</span>
                           </span>
                         )}
                       </td>
 
                       {/* Куратор от ОПР */}
-                      <td className="px-2.5 py-2 text-gray-300 text-[11px]">
-                        <div className="truncate" title={t.curatorNames}>
+                      <td
+                        style={{ width: `${colWidths.curatorNames}px`, minWidth: `${colWidths.curatorNames}px`, maxWidth: `${colWidths.curatorNames}px` }}
+                        className="px-2.5 py-2 text-gray-300 text-[11px] overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="truncate max-w-full" title={t.curatorNames}>
                           {t.curatorNames || <span className="text-gray-500">—</span>}
                         </div>
                       </td>
 
                       {/* Примечания */}
-                      <td className="px-2.5 py-2 text-gray-400 text-[11px]">
-                        <div className="line-clamp-2" title={t.notes}>
+                      <td
+                        style={{ width: `${colWidths.notes}px`, minWidth: `${colWidths.notes}px`, maxWidth: `${colWidths.notes}px` }}
+                        className="px-2.5 py-2 text-gray-400 text-[11px] overflow-hidden border-r border-[#2D3139]/50"
+                      >
+                        <div className="line-clamp-2 break-words max-w-full overflow-hidden" title={t.notes}>
                           {t.notes || <span className="text-gray-500">—</span>}
                         </div>
                       </td>
 
                       {/* Действия */}
-                      <td className="px-2.5 py-2 text-center whitespace-nowrap sticky right-0 bg-[#1F222B] z-10 shadow-l">
+                      <td
+                        style={{ width: `${colWidths.actions}px`, minWidth: `${colWidths.actions}px`, maxWidth: `${colWidths.actions}px` }}
+                        className="px-2.5 py-2 text-center whitespace-nowrap sticky right-0 bg-[#1F222B] z-10 shadow-l overflow-hidden border-l border-[#2D3139]"
+                      >
                         <div className="flex items-center justify-center gap-1">
                           <button
                             type="button"
@@ -915,14 +1041,19 @@ export const SuidTable: React.FC<SuidTableProps> = ({
               <span>Строк:</span>
               <select
                 value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="bg-[#0F1115] border border-[#2D3139] rounded px-1.5 py-0.5 text-xs text-gray-300 focus:outline-hidden focus:border-blue-500"
+                onChange={(e) => {
+                  const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                  setPageSize(val);
+                  setCurrentPage(1);
+                }}
+                className="bg-[#0F1115] border border-[#2D3139] rounded px-1.5 py-0.5 text-xs text-gray-300 focus:outline-hidden focus:border-blue-500 cursor-pointer"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
                 <option value={200}>200</option>
+                <option value="all">Все</option>
               </select>
             </div>
           </div>
