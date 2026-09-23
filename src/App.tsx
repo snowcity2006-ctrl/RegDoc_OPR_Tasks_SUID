@@ -49,6 +49,7 @@ import { DepartmentModal } from './components/directories/DepartmentModal';
 import { EmployeeModal } from './components/directories/EmployeeModal';
 import { DocTypeModal } from './components/directories/DocTypeModal';
 import { DirectionModal } from './components/directories/DirectionModal';
+import { ProjectModal } from './components/directories/ProjectModal';
 import { TasksView } from './components/tasks/TasksView';
 import { SuidView } from './components/suid/SuidView';
 import { useZoom } from './hooks/useZoom';
@@ -108,6 +109,7 @@ export default function App() {
   const [quickEmpModalOpen, setQuickEmpModalOpen] = useState(false);
   const [quickDocTypeModalOpen, setQuickDocTypeModalOpen] = useState(false);
   const [quickDirectionModalOpen, setQuickDirectionModalOpen] = useState(false);
+  const [quickProjectModalOpen, setQuickProjectModalOpen] = useState(false);
 
   // Уведомления (Toasts)
   const [notification, setNotification] = useState<{
@@ -699,6 +701,12 @@ export default function App() {
             projects={projects}
             departments={departments}
             employees={employees}
+            onOpenNewEmployeeModal={() => setQuickEmpModalOpen(true)}
+            onOpenNewProjectModal={() => setQuickProjectModalOpen(true)}
+            onOpenNewDepartmentModal={(orgId) => {
+              setQuickDeptInitialOrgId(orgId);
+              setQuickDeptModalOpen(true);
+            }}
           />
         )}
 
@@ -893,6 +901,22 @@ export default function App() {
         onSave={async (dirData) => {
           await handleSaveDir(dirData);
           setQuickDirectionModalOpen(false);
+        }}
+      />
+
+      {/* Быстрое добавление проекта из модалок */}
+      <ProjectModal
+        isOpen={quickProjectModalOpen}
+        onClose={() => setQuickProjectModalOpen(false)}
+        organizations={organizations}
+        employees={employees}
+        departments={departments}
+        onSaveOrg={handleSaveOrg}
+        onSaveEmp={handleSaveEmp}
+        onSaveDept={handleSaveDept}
+        onSave={async (projData) => {
+          await handleSaveProject(projData);
+          setQuickProjectModalOpen(false);
         }}
       />
 

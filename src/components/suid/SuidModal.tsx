@@ -14,6 +14,8 @@ import {
   Ban,
   Clock,
   Plus,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import {
   SuidTaskRecord,
@@ -37,6 +39,9 @@ interface SuidModalProps {
   projects: Project[];
   departments: Department[];
   employees: Employee[];
+  onOpenNewEmployeeModal?: () => void;
+  onOpenNewProjectModal?: () => void;
+  onOpenNewDepartmentModal?: (orgId?: number) => void;
 }
 
 export const SuidModal: React.FC<SuidModalProps> = ({
@@ -48,7 +53,11 @@ export const SuidModal: React.FC<SuidModalProps> = ({
   projects,
   departments,
   employees,
+  onOpenNewEmployeeModal,
+  onOpenNewProjectModal,
+  onOpenNewDepartmentModal,
 }) => {
+  const [isMaximized, setIsMaximized] = useState(false);
   const [idx, setIdx] = useState<number>(1);
   const [receiptDate, setReceiptDate] = useState<string>('');
   const [plannedEndDate, setPlannedEndDate] = useState<string>('');
@@ -109,7 +118,16 @@ export const SuidModal: React.FC<SuidModalProps> = ({
         setDocTypeId(task.docTypeId || null);
         setDocTypeName(task.docTypeName || '');
 
-        setProjectId(task.projectId || null);
+        let currentProjId = task.projectId || null;
+        if (!currentProjId && (task.projectName || task.projectCode)) {
+          const matchPr = projects.find(
+            (pr) =>
+              (task.projectName && pr.name.trim().toLowerCase() === task.projectName.trim().toLowerCase()) ||
+              (task.projectCode && pr.code && pr.code.trim().toLowerCase() === task.projectCode.trim().toLowerCase())
+          );
+          if (matchPr) currentProjId = matchPr.id;
+        }
+        setProjectId(currentProjId);
         setProjectCode(task.projectCode || '');
         setProjectName(task.projectName || '');
 
@@ -173,19 +191,50 @@ export const SuidModal: React.FC<SuidModalProps> = ({
     }
   };
 
-  // 1.2.2 Обработка выбора проекта: заполняет и код, и название
-  const handleProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value ? Number(e.target.value) : null;
-    setProjectId(val);
-    if (val) {
-      const found = projects.find((pr) => pr.id === val);
+  // 1.2.2 Опции для выпадающего списка выбора проекта из справочника «Проекты» с поиском по части слова
+  const projectOptions: ComboboxOption[] = useMemo(() => {
+    return projects.map((pr) => ({
+      id: pr.id,
+      label: pr.code ? `${pr.code} • ${pr.name}` : pr.name,
+      subLabel: pr.code ? `Шифр проекта: ${pr.code}` : undefined,
+      badge: pr.code || undefined,
+      searchStr: `${pr.code || ''} ${pr.name}`,
+    }));
+  }, [projects]);
+
+  // Обработка выбора проекта: заполняет и id, и код, и название
+  const handleProjectSelect = (selectedId: number | '') => {
+    if (selectedId === '') {
+      setProjectId(null);
+      setProjectCode('');
+      setProjectName('');
+    } else {
+      setProjectId(selectedId);
+      const found = projects.find((pr) => pr.id === selectedId);
       if (found) {
         setProjectCode(found.code || '');
         setProjectName(found.name || '');
+      } else {
+        setProjectCode('');
+        setProjectName('');
       }
+    }
+  };
+
+  const handleCustomProjectChange = (customVal: string) => {
+    setProjectName(customVal);
+    const found = projects.find(
+      (pr) =>
+        pr.name.trim().toLowerCase() === customVal.trim().toLowerCase() ||
+        (pr.code && pr.code.trim().toLowerCase() === customVal.trim().toLowerCase())
+    );
+    if (found) {
+      setProjectId(found.id);
+      setProjectCode(found.code || '');
+      setProjectName(found.name);
     } else {
+      setProjectId(null);
       setProjectCode('');
-      setProjectName('');
     }
   };
 
@@ -410,10 +459,20 @@ export const SuidModal: React.FC<SuidModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-[#171A21] border border-[#2D3139] rounded-2xl max-w-5xl w-full shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh] animate-in zoom-in-95 duration-150">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs ${isMaximized ? 'p-0' : 'p-3 sm:p-4'} overflow-y-auto`}>
+      <div
+        className={`bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-2xl overflow-hidden flex flex-col my-auto transition-all duration-150 w-full ${
+          isMaximized
+            ? 'h-full max-w-none max-h-none rounded-none'
+            : 'max-w-5xl xl:max-w-6xl 2xl:max-w-7xl rounded-2xl max-h-[94vh]'
+        }`}
+      >
         {/* Шапка модального окна */}
-        <div className="px-5 py-3.5 bg-blue-600 border-b border-blue-500/50 text-white flex items-center justify-between shrink-0">
+        <div
+          onDoubleClick={() => setIsMaximized((prev) => !prev)}
+          title="Двойной клик — развернуть / восстановить размер"
+          className="px-5 py-3.5 bg-blue-600 border-b border-blue-500/50 text-white flex items-center justify-between shrink-0 select-none cursor-pointer"
+        >
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-700/80 border border-blue-400/40 flex items-center justify-center text-white shadow-xs">
               <Layers className="w-4 h-4" />
@@ -431,13 +490,24 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-blue-200 hover:text-white hover:bg-blue-700/80 transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0 ml-2">
+            <button
+              type="button"
+              onClick={() => setIsMaximized((prev) => !prev)}
+              title={isMaximized ? 'Восстановить исходный размер' : 'Развернуть на весь экран'}
+              className="p-1.5 rounded-lg text-blue-200 hover:text-white hover:bg-blue-700/80 transition-colors cursor-pointer"
+            >
+              {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              title="Закрыть окно"
+              className="p-1.5 rounded-lg text-blue-200 hover:text-white hover:bg-blue-700/80 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Тело формы */}
@@ -450,10 +520,10 @@ export const SuidModal: React.FC<SuidModalProps> = ({
           )}
 
           {/* Блок 1: Основные сведения, ID в СУИД, Тип документа и даты (в одну строчку, гарантированная видимость всех элементов) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1.35fr_1.1fr_1.1fr_1.1fr_0.95fr] items-end gap-2.5 bg-[#1F222B]/60 p-3 rounded-xl border border-[#2D3139] w-full min-w-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1.35fr_1.1fr_1.1fr_1.1fr_0.95fr] items-end gap-2.5 bg-slate-50 dark:bg-[#1F222B]/60 p-3 rounded-xl border border-slate-200 dark:border-[#2D3139] w-full min-w-0">
             {/* 1. Идентификатор в СУИД */}
             <div className="min-w-0 w-full">
-              <label className="text-[11px] text-amber-300 font-medium block mb-1 truncate" title="Идентификатор в СУИД">
+              <label className="text-[11px] text-amber-700 dark:text-amber-300 font-medium block mb-1 truncate" title="Идентификатор в СУИД">
                 ID в СУИД
               </label>
               <input
@@ -461,20 +531,20 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                 value={suidId}
                 onChange={(e) => setSuidId(e.target.value)}
                 placeholder="1467806"
-                className="w-full h-9 px-2.5 bg-[#0F1115] border border-[#2D3139] rounded-lg text-amber-300 font-mono text-xs placeholder-gray-400 focus:outline-hidden focus:border-blue-500 transition-colors"
+                className="w-full h-9 px-2.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-lg text-amber-700 dark:text-amber-300 font-mono text-xs placeholder-slate-400 dark:placeholder-gray-400 focus:outline-hidden focus:border-blue-500 transition-colors"
               />
             </div>
 
             {/* 2. Тип документа */}
             <div className="min-w-0 w-full">
-              <label className="text-[11px] text-blue-400 font-medium flex items-center gap-1 mb-1 truncate" title="Тип документа">
+              <label className="text-[11px] text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1 mb-1 truncate" title="Тип документа">
                 <Tag className="w-3 h-3 shrink-0" />
                 <span className="truncate">Тип документа</span>
               </label>
               <select
                 value={docTypeId ?? ''}
                 onChange={handleDocTypeChange}
-                className="w-full h-9 px-2 bg-[#0F1115] border border-[#2D3139] rounded-lg text-white text-xs focus:outline-hidden focus:border-blue-500 truncate cursor-pointer transition-colors"
+                className="w-full h-9 px-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-lg text-slate-900 dark:text-white text-xs focus:outline-hidden focus:border-blue-500 truncate cursor-pointer transition-colors"
               >
                 <option value="">-- Выберите --</option>
                 {documentTypes.map((dt) => (
@@ -487,47 +557,47 @@ export const SuidModal: React.FC<SuidModalProps> = ({
 
             {/* 3. Дата поступления */}
             <div className="min-w-0 w-full">
-              <label className="text-[11px] text-gray-300 font-medium block mb-1 truncate" title="Дата поступления">
+              <label className="text-[11px] text-slate-700 dark:text-gray-300 font-medium block mb-1 truncate" title="Дата поступления">
                 Поступление
               </label>
               <input
                 type="date"
                 value={receiptDate}
                 onChange={(e) => setReceiptDate(e.target.value)}
-                className="w-full h-9 px-2 bg-[#0F1115] border border-[#2D3139] rounded-lg text-white text-xs focus:outline-hidden focus:border-blue-500 font-mono [color-scheme:dark] transition-colors"
+                className="w-full h-9 px-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-lg text-slate-900 dark:text-white text-xs focus:outline-hidden focus:border-blue-500 font-mono [color-scheme:light] dark:[color-scheme:dark] transition-colors"
               />
             </div>
 
             {/* 4. Срок план */}
             <div className="min-w-0 w-full">
-              <label className="text-[11px] text-blue-400 font-medium block mb-1 truncate" title="Срок план">
+              <label className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mb-1 truncate" title="Срок план">
                 Срок план
               </label>
               <input
                 type="date"
                 value={plannedEndDate}
                 onChange={(e) => setPlannedEndDate(e.target.value)}
-                className="w-full h-9 px-2 bg-[#0F1115] border border-[#2D3139] rounded-lg text-white text-xs focus:outline-hidden focus:border-blue-500 font-mono [color-scheme:dark] transition-colors"
+                className="w-full h-9 px-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-lg text-blue-700 dark:text-white text-xs focus:outline-hidden focus:border-blue-500 font-mono font-semibold [color-scheme:light] dark:[color-scheme:dark] transition-colors"
               />
             </div>
 
             {/* 5. Срок факт */}
             <div className="min-w-0 w-full">
-              <label className="text-[11px] text-emerald-400 font-medium block mb-1 truncate" title="Срок факт">
+              <label className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium block mb-1 truncate" title="Срок факт">
                 Срок факт
               </label>
               <input
                 type="date"
                 value={actualEndDate}
                 onChange={(e) => setActualEndDate(e.target.value)}
-                className="w-full h-9 px-2 bg-[#0F1115] border border-[#2D3139] rounded-lg text-white text-xs focus:outline-hidden focus:border-blue-500 font-mono [color-scheme:dark] transition-colors"
+                className="w-full h-9 px-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-lg text-emerald-700 dark:text-white text-xs focus:outline-hidden focus:border-blue-500 font-mono font-semibold [color-scheme:light] dark:[color-scheme:dark] transition-colors"
               />
             </div>
 
             {/* 6. Просрочка (расчет) */}
             <div className="min-w-0 w-full">
               <label
-                className="text-[11px] text-gray-300 font-medium block mb-1 truncate"
+                className="text-[11px] text-slate-700 dark:text-gray-300 font-medium block mb-1 truncate"
                 title="Просрочка"
               >
                 Просрочка
@@ -535,13 +605,13 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               <div
                 className={`w-full h-9 px-2 rounded-lg border font-mono font-semibold text-xs flex items-center justify-between ${
                   calculatedDelay > 0
-                    ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
-                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    ? 'bg-rose-50 dark:bg-rose-500/15 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400'
+                    : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                 }`}
                 title={calculatedDelay > 0 ? `Просрочка исполнения: ${calculatedDelay} дней` : 'Исполнено в срок'}
               >
                 <span className="truncate">{calculatedDelay > 0 ? `+${calculatedDelay} дн.` : '0 дн.'}</span>
-                {calculatedDelay > 0 && <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0 ml-1" />}
+                {calculatedDelay > 0 && <AlertTriangle className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0 ml-1" />}
               </div>
             </div>
           </div>
@@ -549,20 +619,20 @@ export const SuidModal: React.FC<SuidModalProps> = ({
           {/* Блок 2: Наименование и описание задачи */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] text-gray-300 font-medium block mb-1">
-                Наименование задачи <span className="text-rose-400">*</span>
+              <label className="text-[11px] text-slate-700 dark:text-gray-300 font-medium block mb-1">
+                Наименование задачи <span className="text-rose-500">*</span>
               </label>
               <textarea
                 rows={2}
                 value={taskName}
                 onChange={(e) => setTaskName(e.target.value)}
                 placeholder="Например: 41.2.5 Рассмотрение комплекта РД"
-                className="w-full px-3 py-2 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white placeholder-gray-500 focus:outline-hidden focus:border-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-hidden focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="text-[11px] text-gray-300 font-medium block mb-1">
+              <label className="text-[11px] text-slate-700 dark:text-gray-300 font-medium block mb-1">
                 Краткое описание задачи
               </label>
               <textarea
@@ -570,18 +640,18 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                 value={taskDescription}
                 onChange={(e) => setTaskDescription(e.target.value)}
                 placeholder="Например: Рассмотрение РД или Корректировка изм. к ТТ"
-                className="w-full px-3 py-2 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white placeholder-gray-500 focus:outline-hidden focus:border-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-hidden focus:border-blue-500"
               />
             </div>
           </div>
 
-          {/* Блок 3: Автор задачи и Куратор от ОПР (в одну строчку) */}
-          <div className="bg-[#1F222B]/60 p-3.5 rounded-xl border border-[#2D3139]">
+          {/* Блок 3: Автор задачи и Куратор от ОПР (в одну строчку) с кнопками '+' */}
+          <div className="bg-slate-50 dark:bg-[#1F222B]/60 p-3.5 rounded-xl border border-slate-200 dark:border-[#2D3139]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-start">
-              {/* 1. Автор задачи (выпадающий список с возможностью поиска по части слова из справочника «Сотрудники») */}
+              {/* 1. Автор задачи (выпадающий список с возможностью поиска по части слова из справочника «Сотрудники» + кнопка +) */}
               <div>
-                <label className="text-[11px] text-gray-300 font-medium flex items-center gap-1 mb-1.5">
-                  <User className="w-3.5 h-3.5 text-blue-400" />
+                <label className="text-[11px] text-slate-700 dark:text-gray-300 font-medium flex items-center gap-1 mb-1.5">
+                  <User className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                   Автор задачи
                 </label>
                 <SearchableCombobox
@@ -595,83 +665,91 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                   onCustomValueChange={handleCustomAuthorChange}
                   placeholder="-- Начните вводить ФИО или выберите автора --"
                   emptyMessage="Сотрудники не найдены"
+                  onAddNew={onOpenNewEmployeeModal}
+                  addNewTitle="Добавить нового сотрудника в справочник"
                 />
               </div>
 
-              {/* 2. Куратор от ОПР (выпадающий список с возможностью набора текста) */}
+              {/* 2. Куратор от ОПР (выпадающий список с возможностью набора текста + кнопка +) */}
               <div>
                 <SearchableMultiSelect
                   id="suid-curators-select"
                   label="Куратор от ОПР"
-                  icon={<Users className="w-3.5 h-3.5 text-emerald-400" />}
+                  icon={<Users className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />}
                   options={curatorOptions}
                   selectedIds={selectedCuratorIds}
                   onChange={setSelectedCuratorIds}
                   placeholder="-- Начните вводить ФИО или выберите куратора из списка --"
                   emptyMessage="Сотрудники не найдены"
                   chipColor="emerald"
+                  onAddNew={onOpenNewEmployeeModal}
+                  addNewTitle="Добавить нового сотрудника/куратора в справочник"
                 />
               </div>
             </div>
           </div>
 
-          {/* Блок 4 (1.2.2): Проект из справочника "Проекты" */}
-          <div className="bg-[#1F222B]/60 p-3.5 rounded-xl border border-[#2D3139]">
-            <label className="text-[11px] text-purple-400 font-medium flex items-center gap-1 mb-1.5">
+          {/* Блок 4 (1.2.2): Проект из справочника "Проекты" с возможностью поиска по части слова и кнопкой '+' */}
+          <div className="bg-slate-50 dark:bg-[#1F222B]/60 p-3.5 rounded-xl border border-slate-200 dark:border-[#2D3139]">
+            <label className="text-[11px] text-purple-700 dark:text-purple-400 font-semibold flex items-center gap-1 mb-1.5">
               <Layers className="w-3.5 h-3.5" />
               Проект
             </label>
-            <select
+            <SearchableCombobox
+              id="suid-project-combobox"
+              inputId="input-suid-project"
+              options={projectOptions}
               value={projectId ?? ''}
-              onChange={handleProjectChange}
-              className="w-full px-3 py-2 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
-            >
-              <option value="">-- Выберите проект из реестра --</option>
-              {projects.map((pr) => (
-                <option key={pr.id} value={pr.id}>
-                  {pr.code ? `${pr.code} • ` : ''}{pr.name}
-                </option>
-              ))}
-            </select>
+              onChange={handleProjectSelect}
+              allowCustomValue={true}
+              customValue={projectName ? (projectCode ? `${projectCode} • ${projectName}` : projectName) : ''}
+              onCustomValueChange={handleCustomProjectChange}
+              placeholder="-- Начните вводить шифр или наименование проекта --"
+              emptyMessage="Проекты не найдены"
+              onAddNew={onOpenNewProjectModal}
+              addNewTitle="Добавить новый проект в справочник"
+            />
           </div>
 
-          {/* Блок 6 (1.2.3): Структурные подразделения (выпадающий список с возможностью набора текста) */}
-          <div className="bg-[#1F222B]/60 p-3.5 rounded-xl border border-[#2D3139]">
+          {/* Блок 6 (1.2.3): Структурные подразделения с кнопкой '+' */}
+          <div className="bg-slate-50 dark:bg-[#1F222B]/60 p-3.5 rounded-xl border border-slate-200 dark:border-[#2D3139]">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-[11px] text-amber-400 font-medium">
+                <Building2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
                   Структурные подразделения
                 </span>
               </div>
 
               {/* Чекбокс: Отчет не требуется */}
-              <label className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0F1115] border border-[#2D3139] text-gray-300 cursor-pointer hover:border-blue-500 transition-colors">
+              <label className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] text-slate-700 dark:text-gray-300 cursor-pointer hover:border-blue-500 transition-colors">
                 <input
                   type="checkbox"
                   checked={isReportNotRequired}
                   onChange={(e) => setIsReportNotRequired(e.target.checked)}
                   className="rounded text-blue-600 focus:ring-0 cursor-pointer"
                 />
-                <Ban className="w-3.5 h-3.5 text-amber-400" />
+                <Ban className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span className="text-[11px] font-medium">Отчет не требуется</span>
               </label>
             </div>
 
-            <p className="text-[10px] text-gray-400 mb-2.5">
+            <p className="text-[10px] text-slate-500 dark:text-gray-400 mb-2.5">
               * При выборе подразделения отметьте чекбокс «Требуется ежемесячный отчет», чтобы добавить подразделение в перечень ежемесячного отчета.
             </p>
 
             <SearchableMultiSelect<string>
               id="suid-departments-select"
               label="Участвующие подразделения"
-              icon={<Building2 className="w-3.5 h-3.5 text-amber-400" />}
+              icon={<Building2 className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />}
               options={departmentOptions}
               selectedIds={selectedDeptShortNames}
               onChange={handleDepartmentsChange}
               placeholder="-- Начните вводить шифр или наименование подразделения --"
               emptyMessage="Подразделения не найдены"
               chipColor="amber"
+              onAddNew={onOpenNewDepartmentModal ? () => onOpenNewDepartmentModal() : undefined}
+              addNewTitle="Добавить новое подразделение в справочник"
               renderItemExtra={(opt, isSelected) => {
                 if (!isSelected) return null;
                 const isRequired = requiredReportDeptShortNames.includes(opt.id);
@@ -680,8 +758,8 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                     onClick={(e) => e.stopPropagation()}
                     className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium border cursor-pointer select-none transition-colors ${
                       isRequired
-                        ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/40 hover:bg-emerald-950/60'
-                        : 'bg-[#171A21] text-gray-400 border-[#2D3139] hover:text-gray-200'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/40'
+                        : 'bg-white dark:bg-[#171A21] text-slate-600 dark:text-gray-400 border-slate-200 dark:border-[#2D3139]'
                     }`}
                     title="При выборе подразделение копируется в список структурных подразделений для ежемесячного отчета"
                   >
@@ -702,8 +780,8 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                     onClick={(e) => e.stopPropagation()}
                     className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] cursor-pointer select-none transition-colors border ${
                       isRequired
-                        ? 'bg-emerald-900/50 text-emerald-300 border-emerald-500/40'
-                        : 'bg-[#171A21]/70 text-gray-400 border-gray-700/60 hover:text-gray-200'
+                        ? 'bg-emerald-50 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/40'
+                        : 'bg-white dark:bg-[#171A21]/70 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700/60'
                     }`}
                     title={
                       isRequired
@@ -725,30 +803,30 @@ export const SuidModal: React.FC<SuidModalProps> = ({
           </div>
 
           {/* Блок 7 (1.2.5): Наличие ежемесячного отчета */}
-          <div className="bg-[#1F222B]/60 p-3.5 rounded-xl border border-[#2D3139]">
-            <label className="text-[11px] text-teal-400 font-medium flex items-center gap-1.5 mb-2">
+          <div className="bg-slate-50 dark:bg-[#1F222B]/60 p-3.5 rounded-xl border border-slate-200 dark:border-[#2D3139]">
+            <label className="text-[11px] text-teal-700 dark:text-teal-400 font-semibold flex items-center gap-1.5 mb-2">
               <FileCheck2 className="w-3.5 h-3.5" />
               Наличие ежемесячного отчета
             </label>
 
             {isReportNotRequired ? (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-2">
-                <Ban className="w-4 h-4 shrink-0 text-amber-400" />
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                <Ban className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
                 <span className="font-medium">
                   Отчет по данной задаче не требуется
                 </span>
               </div>
             ) : selectedDeptShortNames.length === 0 ? (
-              <div className="p-3 rounded-xl bg-[#0F1115] border border-[#2D3139] text-gray-400 text-center">
+              <div className="p-3 rounded-xl bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] text-slate-500 dark:text-gray-400 text-center">
                 Выберите участвующие подразделения выше в блоке «Структурные подразделения», чтобы сформировать список филиалов для ежемесячного отчета
               </div>
             ) : requiredReportDeptShortNames.length === 0 ? (
-              <div className="p-3 rounded-xl bg-[#0F1115] border border-[#2D3139] text-amber-300/80 text-center text-xs">
+              <div className="p-3 rounded-xl bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] text-amber-700 dark:text-amber-300/80 text-center text-xs">
                 Среди выбранных структурных подразделений не отмечен чекбокс «Требуется ежемесячный отчет». Отметьте чекбокс у нужных подразделений выше, чтобы они скопировались в этот список.
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <div className="text-[11px] text-gray-400 mb-1">
+                <div className="text-[11px] text-slate-600 dark:text-gray-400 mb-1">
                   Список структурных подразделений, от которых требуется получение ежемесячного отчета:
                 </div>
 
@@ -761,10 +839,10 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                     return (
                       <div
                         key={dShortName}
-                        className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-2.5 rounded-xl bg-[#0F1115] border border-[#2D3139]"
+                        className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139]"
                       >
                         <div className="flex items-center gap-2 min-w-[110px]">
-                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-blue-900/40 text-blue-300 border border-blue-500/30">
+                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
                             {dShortName}
                           </span>
                         </div>
@@ -777,7 +855,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                             onChange={(e) => handleReportReceivedChange(dShortName, e.target.checked)}
                             className="rounded text-emerald-600 focus:ring-0 cursor-pointer"
                           />
-                          <span className={report.isReceived ? 'text-emerald-400 font-semibold' : 'text-gray-400'}>
+                          <span className={report.isReceived ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-gray-400'}>
                             {report.isReceived ? 'Отчет получен' : 'Отчет отсутствует'}
                           </span>
                         </label>
@@ -796,8 +874,8 @@ export const SuidModal: React.FC<SuidModalProps> = ({
                             }
                             className={`w-full px-2.5 py-1.5 border rounded-lg text-xs font-mono transition-colors focus:outline-hidden ${
                               report.isReceived
-                                ? 'bg-[#171A21] border-[#2D3139] text-white placeholder-gray-500 focus:border-blue-500'
-                                : 'bg-[#12141A] border-[#23262E] text-gray-600 placeholder-gray-600 cursor-not-allowed opacity-60'
+                                ? 'bg-slate-50 dark:bg-[#171A21] border-slate-200 dark:border-[#2D3139] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-blue-500'
+                                : 'bg-slate-100 dark:bg-[#12141A] border-slate-200 dark:border-[#23262E] text-slate-400 dark:text-gray-600 placeholder-slate-400 dark:placeholder-gray-600 cursor-not-allowed opacity-60'
                             }`}
                           />
                         </div>
@@ -811,7 +889,7 @@ export const SuidModal: React.FC<SuidModalProps> = ({
 
           {/* Блок 8: Примечания */}
           <div>
-            <label className="text-[11px] text-gray-300 font-medium block mb-1">
+            <label className="text-[11px] text-slate-700 dark:text-gray-300 font-medium block mb-1">
               Примечания
             </label>
             <textarea
@@ -819,24 +897,24 @@ export const SuidModal: React.FC<SuidModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Дополнительные комментарии, заметки по задаче СУИД..."
-              className="w-full px-3 py-2 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white placeholder-gray-500 focus:outline-hidden focus:border-blue-500"
+              className="w-full px-3 py-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-hidden focus:border-blue-500"
             />
           </div>
 
           {/* Подвал с кнопками */}
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#2D3139] mt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-[#2D3139] mt-2">
             <button
               type="button"
               disabled={saving}
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-[#2D3139] text-gray-300 hover:bg-[#1F222B] text-xs font-medium cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#2D3139] bg-slate-100 hover:bg-slate-200 dark:bg-transparent dark:hover:bg-[#1F222B] text-slate-700 dark:text-gray-300 text-xs font-medium cursor-pointer transition-colors"
             >
               Отмена
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50 transition-colors"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{saving ? 'Сохранение...' : task ? 'Сохранить изменения' : 'Создать запись'}</span>

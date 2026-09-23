@@ -193,6 +193,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
 
   const [isMaximized, setIsMaximized] = useState(false);
   const [isResizingTable, setIsResizingTable] = useState<'bottom' | 'right' | 'left' | 'corner-se' | 'corner-sw' | null>(null);
+  const [liveDimensions, setLiveDimensions] = useState<{ width: number; height: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const resizingTable = useRef<{
     edge: 'bottom' | 'right' | 'left' | 'corner-se' | 'corner-sw';
@@ -218,22 +219,30 @@ export const SuidTable: React.FC<SuidTableProps> = ({
       startColWidths: { ...colWidths },
     };
     setIsResizingTable(edge);
+    setLiveDimensions({ width: Math.round(rect.width), height: Math.round(rect.height) });
 
     let latestScaledWidths: Record<string, number> | null = null;
+    let latestWidth = rect.width;
+    let latestHeight = rect.height;
 
     const handleTableMouseMove = (moveEvent: MouseEvent) => {
       if (!resizingTable.current) return;
       const { edge: currentEdge, startX, startY, startWidth, startHeight, startColWidths } = resizingTable.current;
 
+      let newHeight = startHeight;
+      let newWidth = startWidth;
+
       if (currentEdge === 'bottom' || currentEdge === 'corner-se' || currentEdge === 'corner-sw') {
         const deltaY = moveEvent.clientY - startY;
-        const newHeight = Math.max(200, Math.min(window.innerHeight - 40, startHeight + deltaY));
+        newHeight = Math.max(180, Math.min(window.innerHeight - 40, startHeight + deltaY));
         setTableHeight(newHeight);
       }
 
       if (currentEdge === 'right' || currentEdge === 'corner-se') {
         const deltaX = moveEvent.clientX - startX;
-        const newWidth = Math.max(480, startWidth + deltaX);
+        const minW = 380;
+        const maxW = Math.max(window.innerWidth - 32, 4000);
+        newWidth = Math.max(minW, Math.min(maxW, startWidth + deltaX));
         setTableWidth(newWidth);
 
         // Пропорциональное масштабирование ширины колонок
@@ -249,7 +258,9 @@ export const SuidTable: React.FC<SuidTableProps> = ({
         setColWidths(scaledColWidths);
       } else if (currentEdge === 'left' || currentEdge === 'corner-sw') {
         const deltaX = startX - moveEvent.clientX;
-        const newWidth = Math.max(480, startWidth + deltaX);
+        const minW = 380;
+        const maxW = Math.max(window.innerWidth - 32, 4000);
+        newWidth = Math.max(minW, Math.min(maxW, startWidth + deltaX));
         setTableWidth(newWidth);
 
         // Пропорциональное масштабирование ширины колонок
@@ -264,18 +275,23 @@ export const SuidTable: React.FC<SuidTableProps> = ({
         latestScaledWidths = scaledColWidths;
         setColWidths(scaledColWidths);
       }
+
+      latestWidth = newWidth;
+      latestHeight = newHeight;
+      setLiveDimensions({ width: Math.round(newWidth), height: Math.round(newHeight) });
     };
 
     const handleTableMouseUp = () => {
       setIsResizingTable(null);
       resizingTable.current = null;
+      setLiveDimensions(null);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       window.removeEventListener('mousemove', handleTableMouseMove);
       window.removeEventListener('mouseup', handleTableMouseUp);
       try {
-        if (tableHeight) localStorage.setItem('suid_table_height', String(tableHeight));
-        if (tableWidth) localStorage.setItem('suid_table_width', String(tableWidth));
+        if (latestHeight) localStorage.setItem('suid_table_height', String(Math.round(latestHeight)));
+        if (latestWidth) localStorage.setItem('suid_table_width', String(Math.round(latestWidth)));
         if (latestScaledWidths) {
           localStorage.setItem('suid_table_widths', JSON.stringify(latestScaledWidths));
         }
@@ -300,6 +316,30 @@ export const SuidTable: React.FC<SuidTableProps> = ({
       localStorage.removeItem('suid_table_height');
       localStorage.removeItem('suid_table_width');
       localStorage.removeItem('suid_table_widths');
+    } catch {}
+  };
+
+  // Функция растягивания столбцов на 100% ширины текущего контейнера/экрана
+  const handleFitColumnsToWidth = () => {
+    if (!tableContainerRef.current) return;
+    const availableWidth = tableContainerRef.current.clientWidth;
+    if (availableWidth <= 200) return;
+
+    const currentTotal = Object.values(colWidths).reduce((a, b) => a + b, 0);
+    if (currentTotal <= 0) return;
+
+    const ratio = availableWidth / currentTotal;
+    const scaledColWidths: Record<string, number> = {};
+
+    for (const [key, initialW] of Object.entries(colWidths)) {
+      scaledColWidths[key] = Math.max(key === 'actions' ? 70 : 40, Math.round(initialW * ratio));
+    }
+
+    setColWidths(scaledColWidths);
+    setTableWidth(null);
+    try {
+      localStorage.removeItem('suid_table_width');
+      localStorage.setItem('suid_table_widths', JSON.stringify(scaledColWidths));
     } catch {}
   };
 
@@ -392,7 +432,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
         className={`${
           isMaximized
             ? 'fixed inset-2 sm:inset-4 z-50 rounded-2xl shadow-2xl border border-blue-500/50'
-            : 'relative rounded-2xl shadow-xl border border-[#2D3139]'
+            : 'relative rounded-2xl shadow-xl border border-[#2D3139] w-full'
         } bg-[#171A21] flex flex-col overflow-hidden text-[#E0E0E0] ${
           isResizingTable ? 'transition-none select-none' : 'transition-all'
         }`}
@@ -426,13 +466,28 @@ export const SuidTable: React.FC<SuidTableProps> = ({
             {tableWidth && (
               <button
                 type="button"
-                onClick={() => setTableWidth(null)}
-                title="Растянуть таблицу на 100% ширины контейнера"
-                className="px-2 py-1 rounded-md bg-blue-700/60 hover:bg-blue-700 text-[11px] text-white flex items-center gap-1 border border-blue-400/30 transition-colors cursor-pointer"
+                onClick={() => {
+                  setTableWidth(null);
+                  try {
+                    localStorage.removeItem('suid_table_width');
+                  } catch {}
+                }}
+                title="Растянуть окно таблицы на 100% ширины экрана"
+                className="px-2 py-1 rounded-md bg-blue-700/80 hover:bg-blue-800 text-[11px] text-white flex items-center gap-1 border border-blue-400/40 transition-colors cursor-pointer"
               >
                 100% ширины
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={handleFitColumnsToWidth}
+              title="Растянуть столбцы таблицы пропорционально ширине экрана"
+              className="px-2 py-1 rounded-md bg-blue-700/60 hover:bg-blue-700 text-[11px] text-white flex items-center gap-1 border border-blue-400/30 transition-colors cursor-pointer"
+            >
+              <Maximize2 className="w-3 h-3" />
+              <span>По ширине экрана</span>
+            </button>
 
             <button
               type="button"
@@ -460,8 +515,10 @@ export const SuidTable: React.FC<SuidTableProps> = ({
           className="flex-1 overflow-auto bg-[#171A21] select-text scrollbar-thin"
         >
           <table
-            style={{ width: `${totalTableWidth}px`, minWidth: '100%' }}
-            className="border-collapse table-fixed text-left text-xs"
+            className="w-full text-left border-collapse text-xs select-none table-fixed"
+            style={{
+              minWidth: `${totalTableWidth}px`,
+            }}
           >
             <colgroup>
               <col style={{ width: `${colWidths.idx}px` }} />
@@ -1101,30 +1158,59 @@ export const SuidTable: React.FC<SuidTableProps> = ({
           </div>
         </div>
 
+        {/* Индикатор текущих размеров окна при масштабировании */}
+        {isResizingTable && liveDimensions && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-black/85 text-blue-300 border border-blue-500/40 px-3 py-1 rounded-full text-xs font-mono font-bold shadow-lg pointer-events-none backdrop-blur-xs animate-in fade-in duration-100">
+            {liveDimensions.width} × {liveDimensions.height} px
+          </div>
+        )}
+
         {/* Ручки изменения размеров границ окна таблицы мышью */}
         {!isMaximized && (
           <>
+            {/* Нижняя граница */}
             <div
               onMouseDown={(e) => startResizingTable('bottom', e)}
-              className="absolute bottom-0 left-0 right-0 h-2 cursor-row-resize hover:bg-blue-500/50 transition-colors z-40"
-              title="Потяните для изменения высоты таблицы"
-            />
+              className="absolute bottom-0 left-0 right-0 h-3 cursor-row-resize hover:bg-blue-500/25 active:bg-blue-500/40 transition-colors z-30 group flex items-center justify-center"
+              title="Потяните нижнюю границу для изменения высоты окна таблицы"
+            >
+              <div className="h-1 w-16 rounded-full bg-[#2D3139] group-hover:bg-blue-400 group-active:bg-blue-300 transition-colors" />
+            </div>
+
+            {/* Правая граница */}
             <div
               onMouseDown={(e) => startResizingTable('right', e)}
-              className="absolute top-0 bottom-0 right-0 w-2 cursor-col-resize hover:bg-blue-500/50 transition-colors z-40"
-              title="Потяните для изменения ширины таблицы"
-            />
+              className="absolute top-0 right-0 bottom-0 w-3.5 cursor-col-resize hover:bg-blue-500/25 active:bg-blue-500/40 transition-colors z-30 group flex items-center justify-center"
+              title="Потяните правую границу для изменения ширины окна таблицы в большую или меньшую сторону (столбцы масштабируются пропорционально)"
+            >
+              <div className="w-1 h-14 rounded-full bg-[#2D3139] group-hover:bg-blue-400 group-active:bg-blue-300 transition-colors" />
+            </div>
+
+            {/* Левая граница */}
             <div
               onMouseDown={(e) => startResizingTable('left', e)}
-              className="absolute top-0 bottom-0 left-0 w-2 cursor-col-resize hover:bg-blue-500/50 transition-colors z-40"
-              title="Потяните для изменения ширины таблицы"
-            />
+              className="absolute top-0 bottom-0 left-0 w-3.5 cursor-col-resize hover:bg-blue-500/25 active:bg-blue-500/40 transition-colors z-30 group flex items-center justify-center"
+              title="Потяните левую границу для изменения ширины окна таблицы в большую или меньшую сторону (столбцы масштабируются пропорционально)"
+            >
+              <div className="w-1 h-14 rounded-full bg-[#2D3139] group-hover:bg-blue-400 group-active:bg-blue-300 transition-colors" />
+            </div>
+
+            {/* Правый нижний угол */}
             <div
               onMouseDown={(e) => startResizingTable('corner-se', e)}
-              className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize hover:bg-blue-500 transition-colors z-50 flex items-center justify-center text-gray-500 hover:text-white"
+              className="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize hover:bg-blue-500/30 transition-colors z-40 flex items-center justify-center text-gray-500 hover:text-white"
               title="Потяните угол для масштабирования таблицы"
             >
-              <MoveDiagonal className="w-3 h-3 rotate-90" />
+              <MoveDiagonal className="w-3.5 h-3.5 rotate-90" />
+            </div>
+
+            {/* Левый нижний угол */}
+            <div
+              onMouseDown={(e) => startResizingTable('corner-sw', e)}
+              className="absolute bottom-0 left-0 w-5 h-5 cursor-nesw-resize hover:bg-blue-500/30 transition-colors z-40 flex items-center justify-center text-gray-500 hover:text-white"
+              title="Потяните угол для масштабирования таблицы"
+            >
+              <MoveDiagonal className="w-3.5 h-3.5" />
             </div>
           </>
         )}

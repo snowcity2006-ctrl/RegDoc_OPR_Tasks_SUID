@@ -34,6 +34,9 @@ interface SuidViewProps {
   projects: Project[];
   departments: Department[];
   employees: Employee[];
+  onOpenNewEmployeeModal?: () => void;
+  onOpenNewProjectModal?: () => void;
+  onOpenNewDepartmentModal?: (orgId?: number) => void;
 }
 
 export const SuidView: React.FC<SuidViewProps> = ({
@@ -44,6 +47,9 @@ export const SuidView: React.FC<SuidViewProps> = ({
   projects,
   departments,
   employees,
+  onOpenNewEmployeeModal,
+  onOpenNewProjectModal,
+  onOpenNewDepartmentModal,
 }) => {
   // Состояние фильтрации
   const [filters, setFilters] = useState<SuidFilterState>({
@@ -298,60 +304,60 @@ export const SuidView: React.FC<SuidViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 max-w-7xl mx-auto w-full px-2 sm:px-4 pb-8 animate-in fade-in duration-150">
+    <div className="flex flex-col gap-4 w-full pb-8 animate-in fade-in duration-150">
       {/* Статистические карточки */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-        <div className="p-3 rounded-2xl bg-[#171A21] border border-[#2D3139] shadow-xs flex flex-col justify-between">
-          <div className="text-[11px] text-gray-400 font-medium">Всего в СУИД</div>
+        <div className="p-3 rounded-2xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-xs flex flex-col justify-between">
+          <div className="text-[11px] text-slate-500 dark:text-gray-400 font-medium">Всего в СУИД</div>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-xl font-bold text-white font-mono">{stats.total}</span>
-            <Layers className="w-4 h-4 text-blue-400 opacity-60" />
+            <span className="text-xl font-bold text-slate-900 dark:text-white font-mono">{stats.total}</span>
+            <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400 opacity-80 dark:opacity-60" />
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-[#171A21] border border-[#2D3139] shadow-xs flex flex-col justify-between">
-          <div className="text-[11px] text-amber-400 font-medium">В работе</div>
+        <div className="p-3 rounded-2xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-xs flex flex-col justify-between">
+          <div className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">В работе</div>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-xl font-bold text-amber-300 font-mono">{stats.inProgress}</span>
-            <Clock className="w-4 h-4 text-amber-400 opacity-60" />
+            <span className="text-xl font-bold text-amber-600 dark:text-amber-300 font-mono">{stats.inProgress}</span>
+            <Clock className="w-4 h-4 text-amber-500 dark:text-amber-400 opacity-80 dark:opacity-60" />
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-[#171A21] border border-[#2D3139] shadow-xs flex flex-col justify-between">
-          <div className="text-[11px] text-rose-400 font-medium">С просрочкой</div>
+        <div className="p-3 rounded-2xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-xs flex flex-col justify-between">
+          <div className="text-[11px] text-rose-700 dark:text-rose-400 font-medium">С просрочкой</div>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-xl font-bold text-rose-300 font-mono">{stats.delayed}</span>
-            <AlertTriangle className="w-4 h-4 text-rose-400 opacity-60" />
+            <span className="text-xl font-bold text-rose-600 dark:text-rose-300 font-mono">{stats.delayed}</span>
+            <AlertTriangle className="w-4 h-4 text-rose-500 dark:text-rose-400 opacity-80 dark:opacity-60" />
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-[#171A21] border border-[#2D3139] shadow-xs flex flex-col justify-between">
-          <div className="text-[11px] text-emerald-400 font-medium">Завершенных</div>
+        <div className="p-3 rounded-2xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-xs flex flex-col justify-between">
+          <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Завершенных</div>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-xl font-bold text-emerald-300 font-mono">{stats.completed}</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 opacity-60" />
+            <span className="text-xl font-bold text-emerald-600 dark:text-emerald-300 font-mono">{stats.completed}</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 opacity-80 dark:opacity-60" />
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-[#171A21] border border-[#2D3139] shadow-xs flex flex-col justify-between">
-          <div className="text-[11px] text-teal-400 font-medium">Сданных отчетов</div>
+        <div className="p-3 rounded-2xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-xs flex flex-col justify-between">
+          <div className="text-[11px] text-teal-700 dark:text-teal-400 font-medium">Сданных отчетов</div>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-xl font-bold text-teal-300 font-mono">{stats.reportsComplete}</span>
-            <FileCheck2 className="w-4 h-4 text-teal-400 opacity-60" />
+            <span className="text-xl font-bold text-teal-600 dark:text-teal-300 font-mono">{stats.reportsComplete}</span>
+            <FileCheck2 className="w-4 h-4 text-teal-500 dark:text-teal-400 opacity-80 dark:opacity-60" />
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-[#171A21] border border-[#2D3139] shadow-xs flex flex-col justify-between">
-          <div className="text-[11px] text-purple-400 font-medium">Требуют отчетов</div>
+        <div className="p-3 rounded-2xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-xs flex flex-col justify-between">
+          <div className="text-[11px] text-purple-700 dark:text-purple-400 font-medium">Требуют отчетов</div>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-xl font-bold text-purple-300 font-mono">{stats.reportsNeeded}</span>
-            <TrendingUp className="w-4 h-4 text-purple-400 opacity-60" />
+            <span className="text-xl font-bold text-purple-600 dark:text-purple-300 font-mono">{stats.reportsNeeded}</span>
+            <TrendingUp className="w-4 h-4 text-purple-500 dark:text-purple-400 opacity-80 dark:opacity-60" />
           </div>
         </div>
       </div>
 
       {/* Панель действий: Добавить запись, Экспорт, Печать */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#171A21] border border-[#2D3139] p-3 rounded-2xl shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] p-3 rounded-2xl shadow-xs">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -367,18 +373,18 @@ export const SuidView: React.FC<SuidViewProps> = ({
           <button
             type="button"
             onClick={handleExportExcel}
-            className="px-3 py-2 rounded-xl bg-[#0F1115] border border-[#2D3139] hover:bg-[#1F222B] text-gray-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#0F1115] dark:hover:bg-[#1F222B] border border-slate-200 dark:border-[#2D3139] text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>Экспорт в Excel</span>
           </button>
 
           <button
             type="button"
             onClick={handlePrint}
-            className="px-3 py-2 rounded-xl bg-[#0F1115] border border-[#2D3139] hover:bg-[#1F222B] text-gray-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#0F1115] dark:hover:bg-[#1F222B] border border-slate-200 dark:border-[#2D3139] text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-gray-400" />
+            <Printer className="w-4 h-4 text-slate-500 dark:text-gray-400" />
             <span>Печать</span>
           </button>
         </div>
@@ -414,6 +420,9 @@ export const SuidView: React.FC<SuidViewProps> = ({
         projects={projects}
         departments={departments}
         employees={employees}
+        onOpenNewEmployeeModal={onOpenNewEmployeeModal}
+        onOpenNewProjectModal={onOpenNewProjectModal}
+        onOpenNewDepartmentModal={onOpenNewDepartmentModal}
       />
 
       {/* Модальное окно детального просмотра */}
