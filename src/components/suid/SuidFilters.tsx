@@ -86,13 +86,13 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
             value={filters.searchQuery}
             onChange={(e) => onChange({ ...filters, searchQuery: e.target.value })}
             placeholder="Поиск по задаче, описанию, ID СУИД, автору, проекту, куратору..."
-            className="w-full pl-9 pr-8 py-2 bg-[#0F1115] border border-[#2D3139] focus:border-blue-500 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-hidden transition-colors"
+            className="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] focus:border-blue-500 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-hidden transition-colors"
           />
           {filters.searchQuery && (
             <button
               type="button"
               onClick={() => onChange({ ...filters, searchQuery: '' })}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-0.5 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-slate-900 dark:hover:text-white p-0.5 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -180,18 +180,18 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
         )}
 
         {/* Счетчик */}
-        <div className="text-xs text-gray-400 ml-auto whitespace-nowrap">
-          Найдено: <span className="font-semibold text-white">{filteredCount}</span> из {totalCount}
+        <div className="text-xs text-slate-600 dark:text-gray-400 ml-auto whitespace-nowrap">
+          Найдено: <span className="font-semibold text-slate-900 dark:text-white">{filteredCount}</span> из {totalCount}
         </div>
       </div>
 
       {/* Развернутая панель фильтров */}
       {expanded && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-[#2D3139] text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-slate-200 dark:border-[#2D3139] text-xs">
           {/* Тип документа */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400 flex items-center gap-1">
-              <Tag className="w-3 h-3 text-blue-400" />
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 flex items-center gap-1 font-medium">
+              <Tag className="w-3 h-3 text-blue-500 dark:text-blue-400" />
               Тип документа (из справочника)
             </label>
             <select
@@ -199,7 +199,7 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
               onChange={(e) =>
                 onChange({ ...filters, docTypeId: e.target.value ? Number(e.target.value) : null })
               }
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500"
             >
               <option value="">Все типы документов</option>
               {documentTypes.map((dt) => (
@@ -212,8 +212,8 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
 
           {/* Проект */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400 flex items-center gap-1">
-              <Layers className="w-3 h-3 text-purple-400" />
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 flex items-center gap-1 font-medium">
+              <Layers className="w-3 h-3 text-purple-500 dark:text-purple-400" />
               Проект (код / название)
             </label>
             <select
@@ -221,7 +221,7 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
               onChange={(e) =>
                 onChange({ ...filters, projectId: e.target.value ? Number(e.target.value) : null })
               }
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500 truncate"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500 truncate"
             >
               <option value="">Все проекты</option>
               {projects.map((pr) => (
@@ -234,8 +234,8 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
 
           {/* Подразделение */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400 flex items-center gap-1">
-              <Building2 className="w-3 h-3 text-amber-400" />
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 flex items-center gap-1 font-medium">
+              <Building2 className="w-3 h-3 text-amber-500 dark:text-amber-400" />
               Структурное подразделение
             </label>
             <select
@@ -243,7 +243,7 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
               onChange={(e) =>
                 onChange({ ...filters, departmentShortName: e.target.value || null })
               }
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500"
             >
               <option value="">Все подразделения</option>
               {departments.map((d) => (
@@ -256,8 +256,8 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
 
           {/* Куратор от ОПР */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400 flex items-center gap-1">
-              <Users className="w-3 h-3 text-emerald-400" />
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 flex items-center gap-1 font-medium">
+              <Users className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
               Куратор от ОПР
             </label>
             <select
@@ -265,7 +265,7 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
               onChange={(e) =>
                 onChange({ ...filters, curatorId: e.target.value ? Number(e.target.value) : null })
               }
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500"
             >
               <option value="">Все сотрудники/кураторы</option>
               {employees.map((emp) => (
@@ -278,8 +278,8 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
 
           {/* Фильтр по ежемесячному отчету */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400 flex items-center gap-1">
-              <FileCheck2 className="w-3 h-3 text-teal-400" />
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 flex items-center gap-1 font-medium">
+              <FileCheck2 className="w-3 h-3 text-teal-500 dark:text-teal-400" />
               Статус ежемесячного отчета
             </label>
             <select
@@ -292,7 +292,7 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
                 const val = e.target.value as any;
                 onChange({ ...filters, status: val || 'all' });
               }}
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500"
             >
               <option value="">Не фильтровать по отчету</option>
               <option value="report_received">Отчет получен — все подразделения</option>
@@ -303,14 +303,14 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
 
           {/* Диапазон дат: выбор типа даты */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400 flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-blue-400" />
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 flex items-center gap-1 font-medium">
+              <Calendar className="w-3 h-3 text-blue-500 dark:text-blue-400" />
               Поле даты для диапазона
             </label>
             <select
               value={filters.dateField}
               onChange={(e) => onChange({ ...filters, dateField: e.target.value as any })}
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500"
             >
               <option value="plannedEndDate">Срок план</option>
               <option value="receiptDate">Дата поступления</option>
@@ -320,23 +320,23 @@ export const SuidFilters: React.FC<SuidFiltersProps> = React.memo(({
 
           {/* Дата с */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400">Дата с</label>
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 font-medium">Дата с</label>
             <input
               type="date"
               value={filters.dateFrom}
               onChange={(e) => onChange({ ...filters, dateFrom: e.target.value })}
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
             />
           </div>
 
           {/* Дата по */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] text-gray-400">Дата по</label>
+            <label className="text-[11px] text-slate-600 dark:text-gray-400 font-medium">Дата по</label>
             <input
               type="date"
               value={filters.dateTo}
               onChange={(e) => onChange({ ...filters, dateTo: e.target.value })}
-              className="w-full px-2.5 py-1.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
             />
           </div>
         </div>

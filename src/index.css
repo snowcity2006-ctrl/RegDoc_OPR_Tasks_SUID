@@ -683,3 +683,33 @@ table.table-fixed th > * {
   max-width: 100%;
 }
 
+/* ==========================================================================
+   Светлая тема: форма «Редактирование проекта» / «Новый проект»
+   ========================================================================== */
+html:not(.dark) #project-modal-dialog {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) #project-modal-dialog h3 {
+  color: #0f172a !important;
+}
+
+html:not(.dark) #project-name-input,
+html:not(.dark) #project-code-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html:not(.dark) #project-name-input:focus,
+html:not(.dark) #project-code-input:focus {
+  border-color: #3b82f6 !important;
+}
+
+html:not(.dark) #project-name-input::placeholder,
+html:not(.dark) #project-code-input::placeholder {
+  color: #94a3b8 !important;
+}
+

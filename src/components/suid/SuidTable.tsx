@@ -876,7 +876,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
                       {/* Задача */}
                       <td
                         style={{ width: `${colWidths.taskName}px`, minWidth: `${colWidths.taskName}px`, maxWidth: `${colWidths.taskName}px` }}
-                        className="px-2.5 py-2 text-white font-medium overflow-hidden border-r border-[#2D3139]/50"
+                        className="px-2.5 py-2 text-slate-900 dark:text-white font-medium overflow-hidden border-r border-slate-200 dark:border-[#2D3139]/50"
                       >
                         <div className="line-clamp-2 break-words max-w-full overflow-hidden text-xs" title={t.taskName}>
                           {t.taskName}
@@ -886,7 +886,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
                       {/* Описание задачи */}
                       <td
                         style={{ width: `${colWidths.taskDescription}px`, minWidth: `${colWidths.taskDescription}px`, maxWidth: `${colWidths.taskDescription}px` }}
-                        className="px-2.5 py-2 text-gray-300 text-[11px] overflow-hidden border-r border-[#2D3139]/50"
+                        className="px-2.5 py-2 text-slate-600 dark:text-gray-300 text-[11px] overflow-hidden border-r border-slate-200 dark:border-[#2D3139]/50"
                       >
                         <div className="line-clamp-2 break-words max-w-full overflow-hidden" title={t.taskDescription}>
                           {t.taskDescription || <span className="text-gray-500">—</span>}
@@ -1219,17 +1219,17 @@ export const SuidTable: React.FC<SuidTableProps> = ({
       {/* Диалог подтверждения удаления */}
       {deleteDialog.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-[#1F222B] border border-[#2D3139] rounded-xl max-w-md w-full p-5 shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-3 text-rose-400 mb-3">
+          <div className="bg-white dark:bg-[#1F222B] border border-slate-200 dark:border-[#2D3139] rounded-xl max-w-md w-full p-5 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400 mb-3">
               <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
                 <Trash2 className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-white text-base">Удаление записи СУИД</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">Удаление записи СУИД</h3>
             </div>
-            <p className="text-xs text-gray-300 mb-4">
+            <p className="text-xs text-slate-600 dark:text-gray-300 mb-4">
               Вы действительно хотите удалить задачу:
               <br />
-              <strong className="text-white mt-1 block font-medium break-words">
+              <strong className="text-slate-900 dark:text-white mt-1 block font-semibold break-words">
                 «{deleteDialog.taskTitle}»
               </strong>
             </p>
@@ -1238,7 +1238,7 @@ export const SuidTable: React.FC<SuidTableProps> = ({
                 type="button"
                 disabled={deleting}
                 onClick={() => setDeleteDialog({ isOpen: false, taskId: null, taskTitle: '' })}
-                className="px-3.5 py-1.5 rounded-lg border border-[#2D3139] text-gray-300 hover:bg-[#2B2F3B] text-xs font-medium cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-[#2D3139] text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-[#2B2F3B] text-xs font-medium cursor-pointer transition-colors"
               >
                 Отмена
               </button>

@@ -147,23 +147,23 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
       >
         <div
           id="project-modal-dialog"
-          className={`bg-[#171A21] border border-[#2D3139] rounded-2xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden ${
+          className={`bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] rounded-2xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden ${
             isMaximized
               ? 'w-full h-full max-w-none max-h-none rounded-none'
               : 'w-full max-w-2xl max-h-[90vh]'
           }`}
         >
           {/* Шапка модального окна */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#2D3139] bg-[#1F222B]/60 shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-[#2D3139] bg-slate-50 dark:bg-[#1F222B]/60 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400">
+              <div className="p-2.5 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
                 <Briefcase className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                   {initialData ? 'Редактирование проекта' : 'Новый проект'}
                 </h3>
-                <p className="text-xs text-gray-400">Справочник проектов и объектов проектирования</p>
+                <p className="text-xs text-slate-500 dark:text-gray-400">Справочник проектов и объектов проектирования</p>
               </div>
             </div>
 
@@ -172,7 +172,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 type="button"
                 onClick={() => setIsMaximized(!isMaximized)}
                 title={isMaximized ? 'Восстановить размер' : 'Развернуть на весь экран'}
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-700 dark:text-gray-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
               >
                 {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
@@ -180,7 +180,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 type="button"
                 onClick={onClose}
                 title="Закрыть окно"
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-700 dark:text-gray-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -191,16 +191,16 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
             <div className="p-6 space-y-5 overflow-y-auto flex-1 custom-scrollbar">
               {error && (
-                <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-start gap-3 text-rose-300 text-xs animate-in fade-in">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-start gap-3 text-rose-600 dark:text-rose-300 text-xs animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500 dark:text-rose-400" />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* 1.2. Название проекта (обязательное) */}
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                  Название проекта <span className="text-rose-400">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1.5">
+                  Название проекта <span className="text-rose-500 dark:text-rose-400">*</span>
                 </label>
                 <input
                   id="project-name-input"
@@ -210,13 +210,13 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Например: Обустройство Харасавэйского ГКМ"
-                  className="w-full px-3.5 py-2.5 bg-[#0F1115] border border-[#2D3139] focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 rounded-xl text-sm text-white placeholder-gray-500 outline-none transition-all"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 outline-none transition-all"
                 />
               </div>
 
               {/* 1.3. Код проекта */}
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1.5">
                   Код проекта
                 </label>
                 <input
@@ -225,7 +225,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="Например: ХГКМ-0825 или 2026-ПД-01"
-                  className="w-full px-3.5 py-2.5 bg-[#0F1115] border border-[#2D3139] focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 rounded-xl text-sm text-white placeholder-gray-500 outline-none transition-all font-mono"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 outline-none transition-all font-mono"
                 />
               </div>
 
@@ -234,7 +234,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 <SearchableMultiSelect
                   id="project-orgs-select"
                   label="Проектная организация"
-                  icon={<Building2 className="w-3.5 h-3.5 text-blue-400" />}
+                  icon={<Building2 className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />}
                   options={organizationOptions}
                   selectedIds={organizationIds}
                   onChange={setOrganizationIds}
@@ -244,7 +244,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   addNewTitle="Добавить новую организацию в справочник"
                   chipColor="blue"
                 />
-                <p className="mt-1 text-[11px] text-gray-500">
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-gray-500">
                   Можно выбрать несколько организаций. Нажмите «+», чтобы быстро добавить новую организацию без потери введенных данных.
                 </p>
               </div>
@@ -254,7 +254,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 <SearchableMultiSelect
                   id="project-gips-select"
                   label="ГИП (Главный инженер проекта)"
-                  icon={<User className="w-3.5 h-3.5 text-indigo-400" />}
+                  icon={<User className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />}
                   options={employeeOptions}
                   selectedIds={gipEmployeeIds}
                   onChange={setGipEmployeeIds}
@@ -264,19 +264,19 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   addNewTitle="Добавить нового сотрудника в справочник"
                   chipColor="indigo"
                 />
-                <p className="mt-1 text-[11px] text-gray-500">
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-gray-500">
                   Сотрудники, назначенные главными инженерами по проекту. Нажмите «+», чтобы добавить нового сотрудника без потери введенных данных.
                 </p>
               </div>
             </div>
 
             {/* Подвал формы с кнопками */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#2D3139] bg-[#1F222B]/40 shrink-0">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-[#2D3139] bg-slate-50 dark:bg-[#1F222B]/40 shrink-0">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={saving}
-                className="px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
               >
                 Отмена
               </button>

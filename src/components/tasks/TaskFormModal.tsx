@@ -346,7 +346,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className={`bg-[#171A21] border border-[#2D3139] shadow-2xl rounded-2xl flex flex-col transition-all duration-200 overflow-hidden ${
+        className={`bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] shadow-2xl rounded-2xl flex flex-col transition-all duration-200 overflow-hidden ${
           isMaximized ? 'w-full h-full max-w-none rounded-none' : 'w-full max-w-2xl max-h-[92vh]'
         }`}
       >
@@ -354,21 +354,21 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         <div
           onDoubleClick={() => setIsMaximized((prev) => !prev)}
           title="Двойной клик разворачивает / восстанавливает окно"
-          className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-[#2D3139] flex items-center justify-between bg-[#1F222B] shrink-0 select-none cursor-default"
+          className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 dark:border-[#2D3139] flex items-center justify-between bg-slate-50 dark:bg-[#1F222B] shrink-0 select-none cursor-default"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-500 dark:text-blue-400 flex items-center justify-center border border-blue-500/20 shrink-0">
               <CheckSquare className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <h3
                 id="task-form-modal-title"
-                className="text-base font-bold text-[#E0E0E0] truncate"
+                className="text-base font-bold text-slate-900 dark:text-[#E0E0E0] truncate"
               >
                 {initialData ? `Редактирование задачи №${initialData.id}` : 'Создание новой задачи'}
               </h3>
-              <p className="text-xs text-gray-400 truncate">
-                Символом <span className="text-rose-400 font-bold">*</span> обозначены обязательные для заполнения поля
+              <p className="text-xs text-slate-500 dark:text-gray-400 truncate">
+                Символом <span className="text-rose-500 dark:text-rose-400 font-bold">*</span> обозначены обязательные для заполнения поля
               </p>
             </div>
           </div>
@@ -376,7 +376,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
             <button
               type="button"
               onClick={() => setIsMaximized(!isMaximized)}
-              className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-[#2D3139] transition-colors cursor-pointer"
+              className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-[#2D3139] transition-colors cursor-pointer"
               title={isMaximized ? 'Восстановить исходный размер' : 'Развернуть на весь экран'}
             >
               {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -385,7 +385,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               type="button"
               onClick={onClose}
               title="Закрыть окно"
-              className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-[#2D3139] transition-colors cursor-pointer"
+              className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-[#2D3139] transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -395,16 +395,16 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         {/* Тело формы */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
           {error && (
-            <div className="p-3 bg-rose-950/40 border border-rose-800/60 rounded-xl flex items-center gap-2.5 text-xs text-rose-300">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl flex items-center gap-2.5 text-xs text-rose-700 dark:text-rose-300">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Индикатор статуса и расчетных дней */}
-          <div className="p-3.5 bg-[#0F1115] border border-[#2D3139] rounded-xl flex flex-wrap items-center justify-between gap-3">
+          <div className="p-3.5 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="text-xs text-gray-400">Текущий статус:</span>
+              <span className="text-xs text-slate-600 dark:text-gray-400">Текущий статус:</span>
               <span
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusInfo.badgeClass}`}
               >
@@ -414,13 +414,13 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2 text-xs">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-gray-400">Осталось дней:</span>
+              <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-gray-400" />
+              <span className="text-slate-600 dark:text-gray-400">Осталось дней:</span>
               <span className={`font-mono font-bold text-sm ${statusInfo.textClass}`}>
                 {previewDays === null ? '—' : previewDays > 0 ? `+${previewDays}` : previewDays}
               </span>
               {isAccepted && (
-                <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30">
+                <span className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-500/30">
                   зафиксировано
                 </span>
               )}
@@ -429,8 +429,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
           {/* Формулировка задачи */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-gray-300 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-blue-400" />
+            <label className="block text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
               <span>Задача (описание поручения) *</span>
             </label>
             <textarea
@@ -440,15 +440,15 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               value={taskText}
               onChange={(e) => setTaskText(e.target.value)}
               placeholder="Введите содержание поручения или задачи..."
-              className="w-full px-3.5 py-2.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-xs text-[#E0E0E0] placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-xs text-slate-900 dark:text-[#E0E0E0] placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"
             />
           </div>
 
           {/* Сроки: Плановая и Фактическая дата */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-gray-300 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-blue-400" />
+              <label className="block text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                 <span>Дата окончания по плану *</span>
               </label>
               <input
@@ -457,13 +457,13 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 required
                 value={plannedEndDate}
                 onChange={(e) => setPlannedEndDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-xs text-[#E0E0E0] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-xs text-slate-900 dark:text-[#E0E0E0] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark] transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-gray-300 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-gray-400" />
+              <label className="block text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-gray-400" />
                 <span>Дата окончания по факту</span>
               </label>
               <input
@@ -471,7 +471,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 type="date"
                 value={actualEndDate}
                 onChange={(e) => setActualEndDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-xs text-[#E0E0E0] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-xs text-slate-900 dark:text-[#E0E0E0] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark] transition-colors"
               />
             </div>
           </div>
@@ -479,11 +479,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
           {/* Ответственный */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="block text-xs font-medium text-gray-300 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-blue-400" />
+              <label className="block text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                 <span>Ответственный *</span>
                 {!initialData && selectedAssigneeIds.length > 1 && (
-                  <span className="ml-1 text-[11px] text-blue-400 font-semibold bg-blue-900/30 border border-blue-500/30 px-1.5 py-0.5 rounded-md">
+                  <span className="ml-1 text-[11px] text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-500/30 px-1.5 py-0.5 rounded-md">
                     выбрано: {selectedAssigneeIds.length}
                   </span>
                 )}
@@ -494,7 +494,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   <button
                     type="button"
                     onClick={onOpenNewEmployeeModal}
-                    className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                    className="text-[11px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer"
                   >
                     + Новый сотрудник
                   </button>
@@ -508,18 +508,18 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               <div
                 id="trigger-task-assignee-dropdown"
                 onClick={() => setIsAssigneeDropdownOpen((prev) => !prev)}
-                className={`w-full min-h-[42px] px-3.5 py-2 bg-[#0F1115] border rounded-xl text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
+                className={`w-full min-h-[42px] px-3.5 py-2 bg-white dark:bg-[#0F1115] border rounded-xl text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
                   error && selectedAssigneeIds.length === 0 && !assigneeId
                     ? 'border-rose-500 ring-1 ring-rose-500'
                     : isAssigneeDropdownOpen
                     ? 'border-blue-500 ring-1 ring-blue-500'
-                    : 'border-[#2D3139] hover:border-gray-500'
+                    : 'border-slate-200 dark:border-[#2D3139] hover:border-slate-400 dark:hover:border-gray-500'
                 }`}
               >
                 {/* Содержимое триггера */}
                 <div className="flex items-center gap-1.5 flex-1 flex-wrap overflow-hidden min-w-0">
                   {selectedAssigneeIds.length === 0 ? (
-                    <span className="text-gray-400 select-none">
+                    <span className="text-slate-400 dark:text-gray-400 select-none">
                       Выберите ответственного сотрудника *
                     </span>
                   ) : selectedAssigneeIds.length === 1 ? (
@@ -527,7 +527,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                       const selectedEmp = employees.find((e) => e.id === selectedAssigneeIds[0]);
                       if (!selectedEmp) {
                         return (
-                          <span className="text-gray-400 select-none">
+                          <span className="text-slate-400 dark:text-gray-400 select-none">
                             Не назначен (нажмите для выбора)
                           </span>
                         );
@@ -536,17 +536,17 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                       return (
                         <div className="flex items-center justify-between w-full min-w-0 pr-1">
                           <div className="flex items-center gap-2 truncate">
-                            <span className="font-semibold text-[#E0E0E0] truncate">
+                            <span className="font-semibold text-slate-900 dark:text-[#E0E0E0] truncate">
                               {selectedEmp.fullName}
                             </span>
                             {selectedEmp.position && (
-                              <span className="text-[11px] text-gray-400 truncate">
+                              <span className="text-[11px] text-slate-500 dark:text-gray-400 truncate">
                                 ({selectedEmp.position})
                               </span>
                             )}
                           </div>
                           {wl && (
-                            <span className="font-mono text-[11px] text-blue-300 bg-blue-950/70 border border-blue-500/40 px-1.5 py-0.5 rounded shrink-0">
+                            <span className="font-mono text-[11px] text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-500/40 px-1.5 py-0.5 rounded shrink-0">
                               Загрузка: {wl.percentageStr}
                             </span>
                           )}
@@ -562,14 +562,14 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         return (
                           <span
                             key={emp.id}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-600/20 text-blue-200 border border-blue-500/30 text-[11px] font-medium"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-200 border border-blue-200 dark:border-blue-500/30 text-[11px] font-medium"
                           >
                             <span className="truncate max-w-[130px]" title={emp.fullName}>
                               {emp.fullName}
                             </span>
                             {wl && (
                               <span
-                                className="text-[10px] font-mono text-blue-300 bg-blue-900/50 px-1 rounded"
+                                className="text-[10px] font-mono text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/50 px-1 rounded"
                                 title={`Загрузка: ${wl.percentageStr}`}
                               >
                                 {wl.percentageStr}
@@ -581,7 +581,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                 e.stopPropagation();
                                 handleToggleAssignee(emp.id);
                               }}
-                              className="hover:text-white rounded-full p-0.5 hover:bg-blue-600/40 text-blue-300 cursor-pointer"
+                              className="hover:text-slate-900 dark:hover:text-white rounded-full p-0.5 hover:bg-blue-200/60 dark:hover:bg-blue-600/40 text-blue-600 dark:text-blue-300 cursor-pointer"
                               title="Удалить"
                             >
                               <X className="w-3 h-3" />
@@ -593,7 +593,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0 text-gray-400">
+                <div className="flex items-center gap-1.5 shrink-0 text-slate-400 dark:text-gray-400">
                   {selectedAssigneeIds.length > 0 && (
                     <button
                       type="button"
@@ -601,7 +601,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         e.stopPropagation();
                         handleClearAllSelected();
                       }}
-                      className="p-1 rounded hover:bg-[#2D3139] hover:text-white cursor-pointer"
+                      className="p-1 rounded hover:bg-slate-100 dark:hover:bg-[#2D3139] hover:text-slate-900 dark:hover:text-white cursor-pointer"
                       title="Сбросить выбор"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -609,7 +609,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   )}
                   <ChevronDown
                     className={`w-4 h-4 transition-transform duration-200 ${
-                      isAssigneeDropdownOpen ? 'rotate-180 text-blue-400' : ''
+                      isAssigneeDropdownOpen ? 'rotate-180 text-blue-500 dark:text-blue-400' : ''
                     }`}
                   />
                 </div>
@@ -617,10 +617,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
               {/* Выпадающее окно со строкой поиска и списком исполнителей */}
               {isAssigneeDropdownOpen && (
-                <div className="absolute z-50 left-0 right-0 top-full mt-1.5 bg-[#171A21] border border-[#2D3139] rounded-xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-100 min-w-[320px]">
+                <div className="absolute z-50 left-0 right-0 top-full mt-1.5 bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] rounded-xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-100 min-w-[320px]">
                   {/* Поле ручного набора символов с одновременной фильтрацией */}
                   <div className="relative">
-                    <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Search className="w-4 h-4 text-slate-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       ref={searchInputRef}
                       id="input-task-assignee-filter"
@@ -628,7 +628,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                       value={assigneeSearchQuery}
                       onChange={(e) => setAssigneeSearchQuery(e.target.value)}
                       placeholder="Введите символы для фильтрации (ФИО, должность, отдел)..."
-                      className="w-full pl-9 pr-8 py-2 bg-[#0F1115] border border-[#2D3139] rounded-xl text-xs text-[#E0E0E0] placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                      className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-xs text-slate-900 dark:text-[#E0E0E0] placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     />
                     {assigneeSearchQuery && (
@@ -638,7 +638,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                           e.stopPropagation();
                           setAssigneeSearchQuery('');
                         }}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-0.5 cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white p-0.5 cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -646,12 +646,12 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   </div>
 
                   {/* Быстрые действия: количество и выбор всех */}
-                  <div className="flex items-center justify-between text-[11px] text-gray-400 px-1 border-b border-[#2D3139]/60 pb-1.5">
+                  <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-gray-400 px-1 border-b border-slate-200 dark:border-[#2D3139]/60 pb-1.5">
                     <span className="flex items-center gap-1.5">
                       <span>Найдено:</span>
-                      <strong className="text-gray-200">{filteredEmployees.length}</strong>
+                      <strong className="text-slate-900 dark:text-gray-200">{filteredEmployees.length}</strong>
                       {selectedAssigneeIds.length > 0 && (
-                        <span className="text-blue-400 font-semibold ml-1">
+                        <span className="text-blue-600 dark:text-blue-400 font-semibold ml-1">
                           (отмечено: {selectedAssigneeIds.length})
                         </span>
                       )}
@@ -664,7 +664,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             e.stopPropagation();
                             handleSelectAllFiltered();
                           }}
-                          className="text-blue-400 hover:underline cursor-pointer font-medium"
+                          className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
                         >
                           Выбрать всех ({filteredEmployees.length})
                         </button>
@@ -676,7 +676,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             e.stopPropagation();
                             handleClearAllSelected();
                           }}
-                          className="text-rose-400 hover:underline cursor-pointer font-medium"
+                          className="text-rose-600 dark:text-rose-400 hover:underline cursor-pointer font-medium"
                         >
                           Снять все
                         </button>
@@ -695,17 +695,17 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         }}
                         className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs cursor-pointer select-none transition-colors ${
                           selectedAssigneeIds.length === 0
-                            ? 'bg-blue-600/15 text-blue-200 border border-blue-500/30 font-semibold'
-                            : 'text-gray-400 hover:bg-[#1F222B] hover:text-white'
+                            ? 'bg-blue-50 dark:bg-blue-600/15 text-blue-700 dark:text-blue-200 border border-blue-200 dark:border-blue-500/30 font-semibold'
+                            : 'text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-[#1F222B] hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         <span>— Не назначен</span>
-                        {selectedAssigneeIds.length === 0 && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                        {selectedAssigneeIds.length === 0 && <Check className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
                       </div>
                     )}
 
                     {filteredEmployees.length === 0 ? (
-                      <div className="py-4 text-center text-gray-500 text-xs">
+                      <div className="py-4 text-center text-slate-500 dark:text-gray-500 text-xs">
                         Сотрудники по запросу не найдены
                       </div>
                     ) : (
@@ -723,8 +723,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             }}
                             className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-xs cursor-pointer select-none transition-colors ${
                               isChecked
-                                ? 'bg-blue-600/20 text-blue-100 border border-blue-500/40 font-medium'
-                                : 'text-gray-300 hover:bg-[#1F222B] border border-transparent'
+                                ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-900 dark:text-blue-100 border border-blue-200 dark:border-blue-500/40 font-medium'
+                                : 'text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-[#1F222B] border border-transparent'
                             }`}
                           >
                             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -733,19 +733,19 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                 id={`checkbox-visual-assignee-${emp.id}`}
                                 className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all border ${
                                   isChecked
-                                    ? 'bg-blue-600 border-blue-500 text-white shadow-sm'
-                                    : 'border-gray-500 bg-[#0F1115] hover:border-blue-400'
+                                    ? 'bg-blue-600 border-blue-500 text-white shadow-xs'
+                                    : 'border-slate-300 dark:border-gray-500 bg-white dark:bg-[#0F1115] hover:border-blue-400'
                                 }`}
                               >
                                 {isChecked && <Check className="w-3.5 h-3.5 stroke-[3] text-white" />}
                               </div>
 
                               <div className="flex-1 min-w-0">
-                                <div className={`truncate ${isChecked ? 'font-bold text-white' : 'font-medium text-[#E0E0E0]'}`}>
+                                <div className={`truncate ${isChecked ? 'font-bold text-blue-950 dark:text-white' : 'font-medium text-slate-900 dark:text-[#E0E0E0]'}`}>
                                   {emp.fullName}
                                 </div>
                                 {(emp.position || emp.departmentShortName) && (
-                                  <div className="text-[10px] text-gray-400 truncate mt-0.5">
+                                  <div className="text-[10px] text-slate-500 dark:text-gray-400 truncate mt-0.5">
                                     {emp.position}
                                     {emp.position && emp.departmentShortName ? ' • ' : ''}
                                     {emp.departmentShortName}
@@ -756,10 +756,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
                             {wl && (
                               <div className="shrink-0 flex flex-col items-end text-right pl-2">
-                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-950/60 border border-blue-500/30 text-blue-300">
+                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300">
                                   {wl.percentageStr}
                                 </span>
-                                <span className="text-[9px] text-gray-400 mt-0.5">
+                                <span className="text-[9px] text-slate-500 dark:text-gray-400 mt-0.5">
                                   {wl.count} в работе
                                 </span>
                               </div>
@@ -771,8 +771,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   </div>
 
                   {/* Кнопка закрытия выпадающего меню */}
-                  <div className="pt-2 border-t border-[#2D3139]/80 flex items-center justify-between">
-                    <span className="text-[11px] text-gray-400">
+                  <div className="pt-2 border-t border-slate-200 dark:border-[#2D3139]/80 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500 dark:text-gray-400">
                       {selectedAssigneeIds.length > 0
                         ? `Выбрано: ${selectedAssigneeIds.length} сотр.`
                         : 'Не назначен'}
@@ -793,9 +793,9 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
               {/* Информационный баннер при множественном выборе (создание нескольких задач в БД) */}
               {selectedAssigneeIds.length > 1 && (
-                <div className="mt-2 p-2.5 bg-blue-950/40 border border-blue-500/30 rounded-xl text-xs text-blue-300 flex items-center justify-between gap-2">
+                <div className="mt-2 p-2.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-500/30 rounded-xl text-xs text-blue-800 dark:text-blue-300 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-blue-400 shrink-0" />
+                    <Users className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                     <span>
                       {initialData ? (
                         <>
@@ -813,7 +813,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleClearAllSelected()}
-                    className="text-[11px] text-blue-300 hover:text-white underline cursor-pointer shrink-0"
+                    className="text-[11px] text-blue-600 dark:text-blue-300 hover:underline cursor-pointer shrink-0 font-medium"
                   >
                     Очистить
                   </button>
@@ -823,24 +823,24 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
           </div>
 
           {/* Чекбоксы: Выполнено и Принято */}
-          <div className="p-4 bg-[#0F1115] border border-[#2D3139] rounded-xl space-y-3">
-            <span className="text-xs font-semibold text-gray-300 block">Отметки исполнения:</span>
+          <div className="p-4 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl space-y-3">
+            <span className="text-xs font-semibold text-slate-800 dark:text-gray-300 block">Отметки исполнения:</span>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label
                 htmlFor="checkbox-modal-task-completed"
-                className="flex items-start gap-3 p-2.5 rounded-lg bg-[#171A21] border border-[#2D3139] cursor-pointer hover:border-gray-500 transition-colors"
+                className="flex items-start gap-3 p-2.5 rounded-lg bg-white dark:bg-[#171A21] border border-slate-200 dark:border-[#2D3139] cursor-pointer hover:border-blue-400 transition-colors"
               >
                 <input
                   id="checkbox-modal-task-completed"
                   type="checkbox"
                   checked={isCompleted}
                   onChange={(e) => handleToggleCompleted(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-gray-600 text-blue-600 focus:ring-blue-500 bg-[#0F1115]"
+                  className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 bg-white dark:bg-[#0F1115]"
                 />
                 <div>
-                  <span className="text-xs font-medium text-[#E0E0E0] block">Выполнено</span>
-                  <span className="text-[11px] text-gray-400 block mt-0.5">
+                  <span className="text-xs font-medium text-slate-900 dark:text-[#E0E0E0] block">Выполнено</span>
+                  <span className="text-[11px] text-slate-500 dark:text-gray-400 block mt-0.5">
                     Исполнитель завершил выполнение работы
                   </span>
                 </div>
@@ -850,8 +850,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 htmlFor="checkbox-modal-task-accepted"
                 className={`flex items-start gap-3 p-2.5 rounded-lg border transition-colors ${
                   !isCompleted
-                    ? 'bg-[#171A21]/50 border-[#2D3139]/50 opacity-40 cursor-not-allowed'
-                    : 'bg-[#171A21] border-[#2D3139] cursor-pointer hover:border-gray-500'
+                    ? 'bg-slate-100/60 dark:bg-[#171A21]/50 border-slate-200/60 dark:border-[#2D3139]/50 opacity-40 cursor-not-allowed'
+                    : 'bg-white dark:bg-[#171A21] border-slate-200 dark:border-[#2D3139] cursor-pointer hover:border-emerald-400'
                 }`}
                 title={!isCompleted ? 'Недоступно: сначала необходимо установить отметку "Выполнено"' : undefined}
               >
@@ -861,11 +861,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   disabled={!isCompleted}
                   checked={isAccepted}
                   onChange={(e) => handleToggleAccepted(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-gray-600 text-emerald-600 focus:ring-emerald-500 bg-[#0F1115] disabled:cursor-not-allowed"
+                  className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-gray-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-[#0F1115] disabled:cursor-not-allowed"
                 />
                 <div>
-                  <span className="text-xs font-medium text-[#E0E0E0] block">Принято</span>
-                  <span className="text-[11px] text-gray-400 block mt-0.5">
+                  <span className="text-xs font-medium text-slate-900 dark:text-[#E0E0E0] block">Принято</span>
+                  <span className="text-[11px] text-slate-500 dark:text-gray-400 block mt-0.5">
                     {!isCompleted
                       ? 'Сначала необходимо установить отметку "Выполнено"'
                       : 'Руководитель принял результат (счетчик дней фиксируется)'}
@@ -877,8 +877,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
           {/* Поле "Результат" */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-gray-300 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="block text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Результат выполнения</span>
             </label>
             <textarea
@@ -887,18 +887,18 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               value={result}
               onChange={(e) => setResult(e.target.value)}
               placeholder="Укажите достигнутый результат, реквизиты подтверждающего документа или комментарий..."
-              className="w-full px-3.5 py-2.5 bg-[#0F1115] border border-[#2D3139] rounded-xl text-xs text-[#E0E0E0] placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2D3139] rounded-xl text-xs text-slate-900 dark:text-[#E0E0E0] placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"
             />
           </div>
 
           {/* Кнопки действий */}
-          <div className="pt-2 flex items-center justify-end gap-3 border-t border-[#2D3139]">
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-200 dark:border-[#2D3139]">
             <button
               id="btn-cancel-task-form"
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-[#2D3139] transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#2D3139] transition-colors cursor-pointer"
             >
               Отмена
             </button>
